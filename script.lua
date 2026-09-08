@@ -1,416 +1,258 @@
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local TextService = game:GetService("TextService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
 local HttpService = game:GetService("HttpService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local Mouse = LocalPlayer:GetMouse()
-local Camera = Workspace.CurrentCamera
 local WS = Workspace
 local RS = RunService
 local UIS = UserInputService
-local CurrentTabIndex = 1
-
-local ICONS = {
-    house = "rbxassetid://98755624629571",
-    ["arrow-up"] = "rbxassetid://89282378235317",
-    zap = "rbxassetid://130551565616516",
-    gauge = "rbxassetid://110273524101447",
-    eye = "rbxassetid://100033680381365",
-    sparkles = "rbxassetid://138635884129147",
-    info = "rbxassetid://124560466474914",
-    wrench = "rbxassetid://112148279212860",
-    sword = "rbxassetid://124448418211665",
-    heart = "rbxassetid://116559368303288",
-    sun = "rbxassetid://110150589884127",
-    cloud = "rbxassetid://121226497050352",
-    clock = "rbxassetid://121808839832144",
-    compass = "rbxassetid://115123411028382",
-    ["rotate-cw"] = "rbxassetid://84183336178654",
-    search = "rbxassetid://121018724060431",
-    ["mouse-pointer"] = "rbxassetid://72322454962935",
-    ["map-pin"] = "rbxassetid://84279202219901",
-    navigation = "rbxassetid://79308213542922",
-    users = "rbxassetid://115398113982385",
-    ticket = "rbxassetid://126527071492145",
-    shield = "rbxassetid://110987169760162",
-    hash = "rbxassetid://82890331678520",
-    target = "rbxassetid://87563802520297",
-    maximize = "rbxassetid://76045941763188",
-    layers = "rbxassetid://81973586053257",
-    cpu = "rbxassetid://77549309870247",
-    droplet = "rbxassetid://100597455015098",
-    image = "rbxassetid://112751259236831",
-    ["arrow-right"] = "rbxassetid://113692007244654",
-    ["arrow-left"] = "rbxassetid://102531941843733",
-    crosshair = "rbxassetid://134242818164054",
-    music = "rbxassetid://113343203848535",
-    ["message-circle"] = "rbxassetid://127255077587058",
-    ["message-square"] = "rbxassetid://83881670383280",
-    ["arrow-down"] = "rbxassetid://98764963621439",
-    speedometer = "rbxassetid://92981604980238",
-    link = "rbxassetid://131607023382430",
-    move = "rbxassetid://116138709011735",
-    ["arrow-up-circle"] = "rbxassetid://84395128546494",
-    list = "rbxassetid://113179976918783",
-    home = "rbxassetid://98755624629571",
-    ["link-2"] = "rbxassetid://86072351557466",
-    wings = "rbxassetid://123456789012345",
-    ["rain"] = "rbxassetid://121226497050352",
-}
-
-local function GetIcon(name)
-    return ICONS[name]
-end
-
-local AccentColor = Color3.fromRGB(255, 107, 157)
-local MainColor = Color3.fromRGB(10, 10, 15)
-local SecondaryColor = Color3.fromRGB(20, 20, 30)
-local BorderColor = Color3.fromRGB(60, 60, 80)
-local ContentColor = Color3.fromRGB(200, 200, 220)
-local GrayColor = Color3.fromRGB(150, 150, 180)
-
-local WatermarkGui = Instance.new("ScreenGui")
-WatermarkGui.Name = "Watermark"
-WatermarkGui.Parent = CoreGui
-WatermarkGui.ResetOnSpawn = false
-WatermarkGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-
-local WatermarkFrame = Instance.new("Frame")
-WatermarkFrame.Parent = WatermarkGui
-WatermarkFrame.Position = UDim2.new(0.5, 0, 0, -50)
-WatermarkFrame.AnchorPoint = Vector2.new(0.5, 0)
-WatermarkFrame.Size = UDim2.new(0, 200, 0, 32)
-WatermarkFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-WatermarkFrame.BackgroundTransparency = 0.3
-WatermarkFrame.BorderSizePixel = 0
-WatermarkFrame.ClipsDescendants = true
-
-local WatermarkCorner = Instance.new("UICorner")
-WatermarkCorner.Parent = WatermarkFrame
-WatermarkCorner.CornerRadius = UDim.new(0, 99999)
-
-local WatermarkStroke = Instance.new("UIStroke")
-WatermarkStroke.Parent = WatermarkFrame
-WatermarkStroke.Thickness = 2
-WatermarkStroke.Transparency = 0.5
-WatermarkStroke.Color = AccentColor
-
-local WatermarkLayout = Instance.new("UIListLayout")
-WatermarkLayout.Parent = WatermarkFrame
-WatermarkLayout.FillDirection = Enum.FillDirection.Horizontal
-WatermarkLayout.Padding = UDim.new(0, 2)
-WatermarkLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-WatermarkLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local function CreateWatermarkItem(icon, text, color)
-    local item = Instance.new("Frame")
-    item.Size = UDim2.new(0, 0, 1, 0)
-    item.BackgroundTransparency = 1
-    item.AutomaticSize = Enum.AutomaticSize.X
-    local iconLabel = Instance.new("ImageLabel")
-    iconLabel.Parent = item
-    iconLabel.Size = UDim2.new(0, 14, 0, 14)
-    iconLabel.Position = UDim2.new(0, 0, 0.5, -7)
-    iconLabel.BackgroundTransparency = 1
-    local iconData = GetIcon(icon)
-    if iconData then
-        if typeof(iconData) == "table" then
-            iconLabel.Image = iconData[1]
-            iconLabel.ImageRectSize = iconData[2].ImageRectSize
-            iconLabel.ImageRectOffset = iconData[2].ImageRectPosition
-        else
-            iconLabel.Image = iconData
-        end
-    end
-    iconLabel.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    iconLabel.ImageTransparency = 0.5
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Parent = item
-    textLabel.Size = UDim2.new(0, 0, 1, 0)
-    textLabel.Position = UDim2.new(0, 18, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = text
-    textLabel.TextColor3 = color or Color3.fromRGB(255, 255, 255)
-    textLabel.TextSize = 13
-    textLabel.TextTransparency = 0.15
-    textLabel.Font = Enum.Font.GothamBold
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.AutomaticSize = Enum.AutomaticSize.X
-    return item, textLabel
-end
-
-local injectorItem, injectorText = CreateWatermarkItem("cpu", "Real", Color3.fromRGB(255, 255, 255))
-injectorItem.Parent = WatermarkFrame
-
-local fpsItem, fpsText = CreateWatermarkItem("gauge", "0", Color3.fromRGB(255, 255, 255))
-fpsItem.Parent = WatermarkFrame
-
-local pulseItem, pulseText = CreateWatermarkItem("link-2", "Flowering", Color3.fromRGB(255, 255, 255))
-pulseItem.Parent = WatermarkFrame
-
-local currentFps = 0
-local realFps = 0
-local fpsCounter = 0
-local fpsTimer = 0
-
-local function UpdateWatermark()
-    while true do
-        local dt = RunService.Heartbeat:Wait()
-        fpsCounter = fpsCounter + 1
-        fpsTimer = fpsTimer + dt
-        if fpsTimer >= 0.05 then
-            realFps = math.floor(fpsCounter / fpsTimer + 0.5)
-            fpsCounter = 0
-            fpsTimer = 0
-        end
-        if currentFps < realFps then
-            currentFps = currentFps + 1
-        elseif currentFps > realFps then
-            currentFps = currentFps - 1
-        end
-        local fpsColor
-        if currentFps < 60 then
-            fpsColor = Color3.fromRGB(255, 50, 50)
-        elseif currentFps < 120 then
-            fpsColor = Color3.fromRGB(255, 200, 50)
-        else
-            fpsColor = Color3.fromRGB(50, 255, 50)
-        end
-        pcall(function()
-            if fpsText and fpsText.Parent then
-                fpsText.Text = tostring(currentFps)
-                fpsText.TextColor3 = fpsColor
-            end
-        end)
-    end
-end
-
-task.spawn(UpdateWatermark)
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "Flowering"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+ScreenGui.Name = "ScreenGui"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = CoreGui
 
-local GlassBlur = Instance.new("BlurEffect")
-GlassBlur.Parent = Lighting
-GlassBlur.Size = 3
-GlassBlur.Enabled = true
-
 local Frame = Instance.new("Frame")
-Frame.Name = "Main"
-Frame.Position = UDim2.new(0.5, -400, 0.5, -280)
-Frame.Size = UDim2.new(0, 800, 0, 560)
-Frame.BackgroundColor3 = MainColor
-Frame.BackgroundTransparency = 0.15
+Frame.Name = "Frame"
+Frame.Position = UDim2.new(0.216699, 0, 0.152778, 0)
+Frame.Size = UDim2.new(0, 772, 0, 453)
+Frame.BackgroundColor3 = Color3.new(0, 0, 0)
+Frame.BackgroundTransparency = 0.3
 Frame.BorderSizePixel = 0
-Frame.ClipsDescendants = true
+Frame.ZIndex = 0
 Frame.Parent = ScreenGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.Parent = Frame
-MainCorner.CornerRadius = UDim.new(0, 16)
+local UICorner = Instance.new("UICorner")
+UICorner.Name = "UICorner"
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Frame
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Parent = Frame
-MainStroke.Thickness = 2
-MainStroke.Transparency = 0.3
-MainStroke.Color = AccentColor
+local ImageLabel = Instance.new("ImageLabel")
+ImageLabel.Name = "ImageLabel"
+ImageLabel.Size = UDim2.new(0, 773, 0, 450)
+ImageLabel.BackgroundTransparency = 1
+ImageLabel.BorderSizePixel = 0
+ImageLabel.Image = "rbxassetid://136450056883088"
+ImageLabel.Transparency = 1
+ImageLabel.Parent = Frame
 
-local LeftPanel = Instance.new("Frame")
-LeftPanel.Parent = Frame
-LeftPanel.Size = UDim2.new(0, 200, 1, 0)
-LeftPanel.BackgroundTransparency = 1
+local Frame2 = Instance.new("Frame")
+Frame2.Name = "Frame"
+Frame2.Position = UDim2.new(0.0170344, 0, 0.0243633, 0)
+Frame2.Size = UDim2.new(0, 745, 0, 427)
+Frame2.BackgroundColor3 = Color3.new(0, 0, 0)
+Frame2.BackgroundTransparency = 0.6
+Frame2.BorderSizePixel = 0
+Frame2.Parent = Frame
 
-local Header = Instance.new("Frame")
-Header.Parent = LeftPanel
-Header.Size = UDim2.new(1, 0, 0, 120)
-Header.BackgroundTransparency = 1
+local UICorner2 = Instance.new("UICorner")
+UICorner2.Name = "UICorner"
+UICorner2.CornerRadius = UDim.new(0, 10)
+UICorner2.Parent = Frame2
 
-local Logo = Instance.new("ImageLabel")
-Logo.Parent = Header
-Logo.Size = UDim2.new(1, -10, 1, -10)
-Logo.Position = UDim2.new(0, 5, 0, 5)
-Logo.BackgroundTransparency = 1
-Logo.Image = "rbxassetid://89723325697134"
-Logo.ScaleType = Enum.ScaleType.Fit
+local Frame3 = Instance.new("Frame")
+Frame3.Name = "Frame"
+Frame3.Size = UDim2.new(0, 198, 1, 0)  -- теперь высота = 100% от Frame
+Frame3.Position = UDim2.new(0, 0, 0, 0)  -- прижат к левому краю
+Frame3.BackgroundColor3 = Color3.new(0, 0, 0)
+Frame3.BackgroundTransparency = 1
+Frame3.BorderSizePixel = 0
+Frame3.Parent = Frame
+
+local UICorner3 = Instance.new("UICorner")
+UICorner3.Name = "UICorner"
+UICorner3.CornerRadius = UDim.new(0, 10)
+UICorner3.Parent = Frame3
+
+-- ===== ПУЛЬСИРУЮЩАЯ ЛИНИЯ =====
+local PulseFrame = Instance.new("Frame")
+PulseFrame.Parent = Frame3
+PulseFrame.Size = UDim2.new(0.8, 0, 0, 50)
+PulseFrame.Position = UDim2.new(0.5, 0, 0.08, 0)
+PulseFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+PulseFrame.BackgroundTransparency = 1
+PulseFrame.ClipsDescendants = true
+
+local SHAPE = {
+    Vector2.new(0.00, 0.50),
+    Vector2.new(0.10, 0.50),
+    Vector2.new(0.20, 0.50),
+    Vector2.new(0.30, 0.50),
+    Vector2.new(0.37, 0.50),
+    Vector2.new(0.42, 0.15),
+    Vector2.new(0.45, 0.50),
+    Vector2.new(0.48, 0.90),
+    Vector2.new(0.51, 0.50),
+    Vector2.new(0.57, 0.50),
+    Vector2.new(0.63, 0.50),
+    Vector2.new(0.70, 0.50),
+    Vector2.new(0.78, 0.50),
+    Vector2.new(0.86, 0.50),
+    Vector2.new(0.95, 0.50),
+    Vector2.new(1.00, 0.50),
+}
+
+local CYCLE = 2.8
+local TRAIL_FRACTION = 0.3
+local points = {}
+local numPoints = 50
+local spacing = 5
+
+task.wait(0.1)
+spacing = (PulseFrame.AbsoluteSize.X - 10) / numPoints
+
+local function GetY(x)
+    for j = 1, #SHAPE - 1 do
+        local p0 = SHAPE[j]
+        local p1 = SHAPE[j + 1]
+        if x >= p0.X and x <= p1.X then
+            local f = (x - p0.X) / (p1.X - p0.X)
+            return p0.Y + (p1.Y - p0.Y) * f
+        end
+    end
+    return 0.5
+end
+
+for i = 1, numPoints do
+    local point = Instance.new("Frame")
+    point.Parent = PulseFrame
+    point.Size = UDim2.new(0, 2.5, 0, 0)
+    point.Position = UDim2.new(0, 5 + (i-1) * spacing, 0.5, 0)
+    point.AnchorPoint = Vector2.new(0.5, 0.5)
+    point.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    point.BackgroundTransparency = 1
+    local corner = Instance.new("UICorner")
+    corner.Parent = point
+    corner.CornerRadius = UDim.new(1, 0)
+    table.insert(points, point)
+end
+
+local startTime = os.clock()
+
+local function AnimatePulse()
+    while PulseFrame and PulseFrame.Parent do
+        local elapsed = os.clock() - startTime
+        local cycleTime = CYCLE * 2
+        local t = elapsed % cycleTime
+        local progress = t / cycleTime
+        local headX
+        if progress <= 0.5 then
+            headX = progress * 2
+        else
+            headX = 2 - progress * 2
+        end
+        for i, point in ipairs(points) do
+            local x = i / #points
+            local y = GetY(x)
+            local dist = math.abs(x - headX)
+            if dist < TRAIL_FRACTION then
+                local alpha = 1 - dist / TRAIL_FRACTION
+                point.BackgroundTransparency = 1 - alpha * 0.7
+                point.Size = UDim2.new(0, 2.5, 0, math.abs(y - 0.5) * 35 + 2)
+                point.Position = UDim2.new(0, 5 + (i-1) * spacing, 0.5, -(y - 0.5) * 35)
+                point.BackgroundColor3 = Color3.fromRGB(255, math.floor(50 * (1 - alpha)), math.floor(20 * (1 - alpha)))
+            else
+                point.BackgroundTransparency = 1
+            end
+        end
+        task.wait(0.016)
+    end
+end
+
+task.spawn(AnimatePulse)
+
+-- ===== ТАБЫ =====
+local TabNames = {"Main", "Visuals", "Auras", "World", "Info"}
+local Tabs = {}
+local CurrentTab = 1
 
 local TabScroll = Instance.new("ScrollingFrame")
-TabScroll.Parent = LeftPanel
-TabScroll.Size = UDim2.new(0.9, 0, 1, -105)
-TabScroll.Position = UDim2.new(0.05, 0, 0, 105)
+TabScroll.Parent = Frame2 -- Меняем родителя на Frame2 (основной контейнер справа)
+TabScroll.Size = UDim2.new(0.25, 0, 0.65, 0) -- Ширина 25% от Frame2
+TabScroll.Position = UDim2.new(0.02, 0, 0.2, 0) -- Чуть-чуть слева в Frame2
 TabScroll.BackgroundTransparency = 1
-TabScroll.ScrollBarThickness = 3
-TabScroll.ScrollBarImageTransparency = 0.6
-TabScroll.ScrollBarImageColor3 = AccentColor
+TabScroll.ScrollBarThickness = 0
 TabScroll.Active = true
 TabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+TabScroll.ZIndex = 5
 
 local TabLayout = Instance.new("UIListLayout")
 TabLayout.Parent = TabScroll
-TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabLayout.Padding = UDim.new(0, 4)
-
-TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    TabScroll.CanvasSize = UDim2.fromOffset(0, TabLayout.AbsoluteContentSize.Y + 10)
-end)
-
-local BottomPanel = Instance.new("Frame")
-BottomPanel.Parent = LeftPanel
-BottomPanel.Size = UDim2.new(1, 0, 0, 50)
-BottomPanel.Position = UDim2.new(0, 0, 1, -50)
-BottomPanel.BackgroundTransparency = 1
-
-local Avatar = Instance.new("ImageLabel")
-Avatar.Parent = BottomPanel
-Avatar.Size = UDim2.new(0, 32, 0, 32)
-Avatar.Position = UDim2.new(0, 12, 0.5, -16)
-Avatar.BackgroundTransparency = 1
-Avatar.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-
-local AvatarCorner = Instance.new("UICorner")
-AvatarCorner.Parent = Avatar
-AvatarCorner.CornerRadius = UDim.new(1, 0)
-
-local AvatarStroke = Instance.new("UIStroke")
-AvatarStroke.Parent = Avatar
-AvatarStroke.Thickness = 2
-AvatarStroke.Color = AccentColor
-AvatarStroke.Transparency = 0.3
-
-local Username = Instance.new("TextLabel")
-Username.Parent = BottomPanel
-Username.Size = UDim2.new(0, 100, 0, 18)
-Username.Position = UDim2.new(0, 52, 0, 4)
-Username.BackgroundTransparency = 1
-Username.Text = LocalPlayer.DisplayName
-Username.TextColor3 = Color3.fromRGB(255, 255, 255)
-Username.TextSize = 13
-Username.Font = Enum.Font.GothamBold
-Username.TextXAlignment = Enum.TextXAlignment.Left
-Username.TextTruncate = Enum.TextTruncate.SplitWord
-
-local Expire = Instance.new("TextLabel")
-Expire.Parent = BottomPanel
-Expire.Size = UDim2.new(0, 100, 0, 14)
-Expire.Position = UDim2.new(0, 52, 0, 24)
-Expire.BackgroundTransparency = 1
-Expire.Text = "never"
-Expire.TextColor3 = ContentColor
-Expire.TextSize = 10
-Expire.Font = Enum.Font.GothamMedium
-Expire.TextXAlignment = Enum.TextXAlignment.Left
-
-local RightPanel = Instance.new("Frame")
-RightPanel.Parent = Frame
-RightPanel.Size = UDim2.new(1, -200, 1, 0)
-RightPanel.Position = UDim2.new(0, 200, 0, 0)
-RightPanel.BackgroundColor3 = MainColor
-RightPanel.BackgroundTransparency = 0.15
-RightPanel.ClipsDescendants = true
-
-local RightCorner = Instance.new("UICorner")
-RightCorner.Parent = RightPanel
-RightCorner.CornerRadius = UDim.new(0, 16)
-
-local RightStroke = Instance.new("UIStroke")
-RightStroke.Parent = RightPanel
-RightStroke.Thickness = 1.5
-RightStroke.Transparency = 0.5
-RightStroke.Color = AccentColor
-
-local RightHeader = Instance.new("Frame")
-RightHeader.Parent = RightPanel
-RightHeader.Size = UDim2.new(1, 0, 0, 55)
-RightHeader.BackgroundTransparency = 1
-
-local SearchFrame = Instance.new("Frame")
-SearchFrame.Parent = RightHeader
-SearchFrame.Size = UDim2.new(0, 30, 0, 30)
-SearchFrame.Position = UDim2.new(0.95, 0, 0.5, 0)
-SearchFrame.AnchorPoint = Vector2.new(1, 0.5)
-SearchFrame.BackgroundTransparency = 1
-SearchFrame.ClipsDescendants = true
-
-local SearchIcon = Instance.new("ImageLabel")
-SearchIcon.Parent = SearchFrame
-SearchIcon.Size = UDim2.new(0, 18, 0, 18)
-SearchIcon.Position = UDim2.new(0, 6, 0.5, -17)
-SearchIcon.BackgroundTransparency = 1
-local searchIconData = GetIcon("search")
-if searchIconData then
-    if typeof(searchIconData) == "table" then
-        SearchIcon.Image = searchIconData[1]
-        SearchIcon.ImageRectSize = searchIconData[2].ImageRectSize
-        SearchIcon.ImageRectOffset = searchIconData[2].ImageRectPosition
-    else
-        SearchIcon.Image = searchIconData
-    end
-end
-SearchIcon.ImageColor3 = GrayColor
-SearchIcon.ImageTransparency = 0
-
-local SearchBox = Instance.new("TextBox")
-SearchBox.Parent = SearchFrame
-SearchBox.Size = UDim2.new(1, -35, 0, 25)
-SearchBox.Position = UDim2.new(0, 35, 0.5, -17)
-SearchBox.BackgroundTransparency = 1
-SearchBox.PlaceholderText = "Search"
-SearchBox.Text = ""
-SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SearchBox.TextSize = 13
-SearchBox.TextTransparency = 1
-SearchBox.Font = Enum.Font.GothamMedium
-SearchBox.TextXAlignment = Enum.TextXAlignment.Left
-SearchBox.ClearTextOnFocus = false
-
-local SearchOpen = false
-SearchIcon.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        SearchOpen = not SearchOpen
-        if SearchOpen then
-            TweenService:Create(SearchFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 210, 0, 30)
-            }):Play()
-            TweenService:Create(SearchBox, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                TextTransparency = 0.35
-            }):Play()
-        else
-            TweenService:Create(SearchFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 30, 0, 30)
-            }):Play()
-            TweenService:Create(SearchBox, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                TextTransparency = 1
-            }):Play()
-            SearchBox.Text = ""
-        end
-    end
-end)
+-- ... (остальной код без изменений)
 
 local TabContainer = Instance.new("Frame")
-TabContainer.Parent = RightPanel
-TabContainer.Size = UDim2.new(1, 0, 1, -55)
-TabContainer.Position = UDim2.new(0, 0, 0, 55)
+TabContainer.Parent = Frame2 -- Меняем родителя на Frame2
+TabContainer.Size = UDim2.new(0.73, 0, 0.9, 0) -- Занимает 73% ширины Frame2 (остальное под TabScroll)
+TabContainer.Position = UDim2.new(0.26, 0, 0.10, 0) -- Сдвигаем вправо от TabScroll
 TabContainer.BackgroundTransparency = 1
 TabContainer.ClipsDescendants = true
+TabContainer.ZIndex = 5
 
-local Tabs = {}
-TabIndex = 1
-local Flags = {}
-local AllItems = {}
+-- ===== КНОПКА ВЫХОДА =====
+local UnloadButton = Instance.new("TextButton")
+UnloadButton.Name = "UnloadButton"
+UnloadButton.Position = UDim2.new(0.94, 0, 0.01, 13)
+UnloadButton.Size = UDim2.new(0, 30, 0, 30)
+UnloadButton.Text = "x"
+UnloadButton.TextColor3 = Color3.new(1, 1, 1)
+UnloadButton.TextSize = 20
+UnloadButton.TextScaled = true
+UnloadButton.BackgroundColor3 = Color3.new(1, 0, 0)
+UnloadButton.BackgroundTransparency = 1
+UnloadButton.BorderSizePixel = 0
+UnloadButton.Parent = Frame
+UnloadButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
 
+local UnloadCorner = Instance.new("UICorner")
+UnloadCorner.Name = "UnloadCorner"
+UnloadCorner.CornerRadius = UDim.new(0, 5)
+UnloadCorner.Parent = UnloadButton
+
+local dragging = false
+local dragStart, startPos
+
+Frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+    end
+end)
+
+Frame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        Frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+        -- Frame3 перемещается автоматически, потому что он внутри Frame
+    end
+end)
+
+-- ===== КОНФИГ =====
 local Config = {
-    SpeedEnabled = false, SpeedValue = 16, TpEnabled = false, TpHeight = 10,
+    SpeedEnabled = false, SpeedValue = 16,
+    TpEnabled = false, TpHeight = 10,
     SpinEnabled = false, SpinSpeed = 15, SpinMode = "Spin",
-    SkipMapEnabled = false, SkipMapPlatform = nil, SkipMapPos = Vector3.new(0, 5000, 0), SkipMapConnection = nil,
+    SkipMapEnabled = false, SkipMapPos = Vector3.new(0, 5000, 0), SkipMapPlatform = nil, SkipMapConnection = nil,
     TpWalkEnabled = false, TpWalkValue = 1,
     SuperBounceEnabled = false, SuperBounceHeight = 190,
     SuperJumpEnabled = false, SuperJumpPower = 250,
@@ -422,88 +264,16 @@ local Config = {
     GravityEnabled = false, GravityValue = 196.2,
     JumpPadEnabled = false, JumpPadValue = 360,
     MagicAura = false, MagicAuraCount = 3, MagicAuraRadius = 3, MagicAuraSpeed = 2,
-    WingsAura = false, WingsColor = Color3.fromRGB(255, 107, 157), WingsSize = 3, WingsCount = 10, WingsOffsetX = 0, WingsOffsetY = 0, WingsOffsetZ = 0,
+    WingsAura = false, WingsColor = Color3.fromRGB(255, 150, 200), WingsSize = 3, WingsCount = 10, WingsOffsetX = 0, WingsOffsetY = 0, WingsOffsetZ = 0,
     BHopEnabled = false, IsHoldingJump = false,
-    RainEnabled = false, RainSpeed = 30, RainDensity = 50, RainColor = Color3.fromRGB(255, 107, 157), RainCircleSize = 2, RainCircleTransparency = 0.3,
-    ShaderPreset = nil,
+    RainEnabled = false, RainSpeed = 30, RainDensity = 50, RainColor = Color3.fromRGB(255, 150, 200), RainCircleSize = 2, RainCircleTransparency = 0.3,
+    TeleportCoords = "",
 }
 
-local SavePath = "Flowering/Config.lua"
+local Flags = {}
+local AllItems = {}
 
-local function SaveConfig()
-    local data = {}
-    for flag, lib in pairs(Flags) do
-        if lib and lib.GetValue then
-            local ok, val = pcall(function()
-                return lib:GetValue()
-            end)
-            if ok and (type(val) == "number" or type(val) == "boolean" or type(val) == "string") then
-                data[flag] = val
-            end
-        end
-    end
-    local json = HttpService:JSONEncode(data)
-    if writefile then
-        writefile(SavePath, json)
-    end
-end
-
-task.delay(0.5, function()
-    if LoadConfig then
-        LoadConfig()
-    end
-end)
-
-task.spawn(function()
-    while true do
-        task.wait(30)
-        SaveConfig()
-    end
-end)
-
-local function CreateIconLabel(icon, size, color, transparency)
-    if not icon then return nil end
-    local IconLabel = Instance.new("ImageLabel")
-    IconLabel.Size = UDim2.new(0, size or 16, 0, size or 16)
-    IconLabel.BackgroundTransparency = 1
-    if typeof(icon) == "table" then
-        IconLabel.Image = icon[1]
-        IconLabel.ImageRectSize = icon[2].ImageRectSize
-        IconLabel.ImageRectOffset = icon[2].ImageRectPosition
-    else
-        IconLabel.Image = icon
-    end
-    IconLabel.ImageColor3 = color or AccentColor
-    IconLabel.ImageTransparency = transparency or 0.35
-    return IconLabel
-end
-
-local CharacterService = require(ReplicatedStorage:WaitForChild("Services"):WaitForChild("Asset"):WaitForChild("CharacterService"))
-local ToolAction = ReplicatedStorage.Events.ToolAction
-local changePlayerMode = ReplicatedStorage.Events.SetPlayerMode
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local Character, Humanoid, HumanoidRootPart, CharacterTag
-
-local function GetCharacterTag(Character)
-    if not Character then return nil end
-    return Character:GetAttribute("Tag")
-end
-
-local function setupCharacter(character)
-    Character = character
-    Humanoid = character:FindFirstChildOfClass("Humanoid")
-    HumanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    CharacterTag = GetCharacterTag(character)
-end
-
-if LocalPlayer.Character then
-    setupCharacter(LocalPlayer.Character)
-end
-
-LocalPlayer.CharacterAdded:Connect(function(character)
-    setupCharacter(character)
-end)
-
+-- ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 function isPlayerDowned(player)
     if not player or not player.Character then return false end
     local char = player.Character
@@ -594,140 +364,73 @@ function teleportToSecurityPart(offset)
     end
 end
 
-function CreateTab(icon, name)
+-- ===== ФУНКЦИИ СОЗДАНИЯ ЭЛЕМЕНТОВ UI =====
+local function CreateTab(name)
     local tabIndex = #Tabs + 1
     
-    local Button = Instance.new("Frame")
+    local Button = Instance.new("TextButton")
     Button.Parent = TabScroll
-    Button.Size = UDim2.new(0.95, 0, 0, 32)
+    Button.Size = UDim2.new(0.9, 0, 0, 32)
+    Button.BackgroundColor3 = Color3.new(0, 0, 0)
     Button.BackgroundTransparency = 1
+    Button.Text = "  " .. name
+    Button.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Button.TextSize = 13
+    Button.TextXAlignment = Enum.TextXAlignment.Left
+    Button.Font = Enum.Font.GothamMedium
     Button.BorderSizePixel = 0
     
-    local ButtonCorner = Instance.new("UICorner")
-    ButtonCorner.Parent = Button
-    ButtonCorner.CornerRadius = UDim.new(0, 6)
-    
-    local IconLabel = Instance.new("ImageLabel")
-    IconLabel.Parent = Button
-    IconLabel.Size = UDim2.new(0, 18, 0, 18)
-    IconLabel.Position = UDim2.new(0, 10, 0.5, -9)
-    IconLabel.BackgroundTransparency = 1
-    if typeof(icon) == "table" then
-        IconLabel.Image = icon[1]
-        IconLabel.ImageRectSize = icon[2].ImageRectSize
-        IconLabel.ImageRectOffset = icon[2].ImageRectPosition
-    else
-        IconLabel.Image = icon
-    end
-    IconLabel.ImageColor3 = GrayColor
-    
-    local ButtonLabel = Instance.new("TextLabel")
-    ButtonLabel.Parent = Button
-    ButtonLabel.Size = UDim2.new(1, -38, 0, 16)
-    ButtonLabel.Position = UDim2.new(0, 38, 0.5, -10)
-    ButtonLabel.BackgroundTransparency = 1
-    ButtonLabel.Text = name
-    ButtonLabel.TextColor3 = GrayColor
-    ButtonLabel.TextSize = 13
-    ButtonLabel.Font = Enum.Font.GothamMedium
-    ButtonLabel.TextXAlignment = Enum.TextXAlignment.Left
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.Parent = Button
+    btnCorner.CornerRadius = UDim.new(0, 6)
     
     local Content = Instance.new("Frame")
     Content.Parent = TabContainer
     Content.Size = UDim2.new(1, 0, 1, 0)
     Content.BackgroundTransparency = 1
-    Content.Visible = false
+    Content.Visible = (tabIndex == 1)
     
-    local LeftScroll = Instance.new("ScrollingFrame")
-    LeftScroll.Parent = Content
-    LeftScroll.Size = UDim2.new(0.5, 0, 1, -5)
-    LeftScroll.Position = UDim2.new(0.25, 0, 0.5, 0)
-    LeftScroll.AnchorPoint = Vector2.new(0.5, 0.5)
-    LeftScroll.BackgroundTransparency = 1
-    LeftScroll.ScrollBarThickness = 0
-    LeftScroll.Active = true
-    LeftScroll.ClipsDescendants = false
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Parent = Content
+    Scroll.Size = UDim2.new(1, -5, 1, -5)
+    Scroll.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Scroll.AnchorPoint = Vector2.new(0.5, 0.5)
+    Scroll.BackgroundTransparency = 1
+    Scroll.ScrollBarThickness = 0
+    Scroll.Active = true
+    Scroll.ClipsDescendants = true
     
-    local LeftLayout = Instance.new("UIListLayout")
-    LeftLayout.Parent = LeftScroll
-    LeftLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-    LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    LeftLayout.Padding = UDim.new(0, 5)
+    local Layout = Instance.new("UIListLayout")
+    Layout.Parent = Scroll
+    Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout.Padding = UDim.new(0, 2)
     
-    LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        LeftScroll.CanvasSize = UDim2.fromOffset(0, LeftLayout.AbsoluteContentSize.Y + 1)
-    end)
-    
-    local RightScroll = Instance.new("ScrollingFrame")
-    RightScroll.Parent = Content
-    RightScroll.Size = UDim2.new(0.5, 0, 1, -5)
-    RightScroll.Position = UDim2.new(0.75, 0, 0.5, 0)
-    RightScroll.AnchorPoint = Vector2.new(0.5, 0.5)
-    RightScroll.BackgroundTransparency = 1
-    RightScroll.ScrollBarThickness = 0
-    RightScroll.Active = true
-    RightScroll.ClipsDescendants = false
-    
-    local RightLayout = Instance.new("UIListLayout")
-    RightLayout.Parent = RightScroll
-    RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    RightLayout.Padding = UDim.new(0, 5)
-    
-    RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        RightScroll.CanvasSize = UDim2.fromOffset(0, RightLayout.AbsoluteContentSize.Y + 1)
+    Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Scroll.CanvasSize = UDim2.fromOffset(0, Layout.AbsoluteContentSize.Y + 5)
     end)
     
     local function ShowTab()
         for i, tab in ipairs(Tabs) do
             tab.Content.Visible = (i == tabIndex)
             if i == tabIndex then
-                tab.ButtonLabel.TextColor3 = AccentColor
-                if tab.ButtonIcon then
-                    tab.ButtonIcon.ImageColor3 = AccentColor
-                end
+                tab.Button.TextColor3 = Color3.fromRGB(255, 0, 0)
+                tab.Button.BackgroundTransparency = 0.9
             else
-                tab.ButtonLabel.TextColor3 = GrayColor
-                if tab.ButtonIcon then
-                    tab.ButtonIcon.ImageColor3 = GrayColor
-                end
+                tab.Button.TextColor3 = Color3.fromRGB(150, 150, 150)
+                tab.Button.BackgroundTransparency = 1
             end
         end
-        CurrentTabIndex = tabIndex
+        CurrentTab = tabIndex
     end
     
-    local ButtonInput = Instance.new("ImageButton")
-    ButtonInput.Parent = Button
-    ButtonInput.Size = UDim2.new(1, 0, 1, 0)
-    ButtonInput.BackgroundTransparency = 1
-    ButtonInput.ImageTransparency = 1
-    
-    ButtonInput.MouseButton1Click:Connect(ShowTab)
-    
-    ButtonInput.MouseEnter:Connect(function()
-        if CurrentTabIndex ~= tabIndex then
-            TweenService:Create(Button, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.7
-            }):Play()
-        end
-    end)
-    
-    ButtonInput.MouseLeave:Connect(function()
-        if CurrentTabIndex ~= tabIndex then
-            TweenService:Create(Button, TweenInfo.new(0.2), {
-                BackgroundTransparency = 1
-            }):Play()
-        end
-    end)
+    Button.MouseButton1Click:Connect(ShowTab)
     
     local tabData = {
         Button = Button,
-        ButtonLabel = ButtonLabel,
-        ButtonIcon = IconLabel,
         Content = Content,
-        LeftScroll = LeftScroll,
-        RightScroll = RightScroll,
-        LeftLayout = LeftLayout,
-        RightLayout = RightLayout,
+        Scroll = Scroll,
+        Layout = Layout,
         Show = ShowTab
     }
     table.insert(Tabs, tabData)
@@ -739,73 +442,45 @@ function CreateTab(icon, name)
     function tabData:AddSection(config)
         config = config or {}
         local sectionName = config.Name or "SECTION"
-        local position = config.Position or "left"
-        local sectionIcon = config.Icon
-        
-        local target = position == "left" and LeftScroll or RightScroll
         
         local SectionFrame = Instance.new("Frame")
-        SectionFrame.Parent = target
-        SectionFrame.Size = UDim2.new(1, 0, 0, 0)
+        SectionFrame.Parent = Scroll
+        SectionFrame.Size = UDim2.new(1, -5, 0, 0)
         SectionFrame.BackgroundTransparency = 1
         SectionFrame.ClipsDescendants = true
         
-        local SectionHeader = Instance.new("Frame")
-        SectionHeader.Parent = SectionFrame
-        SectionHeader.Size = UDim2.new(1, 0, 0, 20)
-        SectionHeader.Position = UDim2.new(0, 0, 0, 0)
-        SectionHeader.BackgroundTransparency = 1
-        
-        if sectionIcon then
-            local IconLabel = CreateIconLabel(sectionIcon, 14, ContentColor, 0.5)
-            IconLabel.Parent = SectionHeader
-            IconLabel.Position = UDim2.new(0, 5, 0.5, -7)
-            IconLabel.Size = UDim2.new(0, 14, 0, 14)
-        end
-        
+        -- СЕРЫЙ ТЕКСТ РАЗДЕЛА
         local SectionLabel = Instance.new("TextLabel")
-        SectionLabel.Parent = SectionHeader
-        SectionLabel.Size = UDim2.new(1, -(sectionIcon and 30 or 10), 0, 15)
-        SectionLabel.Position = UDim2.new(0, sectionIcon and 25 or 10, 0.5, -7.5)
+        SectionLabel.Parent = SectionFrame
+        SectionLabel.Size = UDim2.new(1, 0, 0, 20)
         SectionLabel.BackgroundTransparency = 1
         SectionLabel.Text = sectionName
-        SectionLabel.TextColor3 = ContentColor
+        SectionLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
         SectionLabel.TextSize = 11
         SectionLabel.Font = Enum.Font.GothamMedium
         SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        SectionLabel.TextTransparency = 0.3
         
         table.insert(AllItems, {Root = SectionLabel, Name = sectionName})
         
         local SectionHandler = Instance.new("Frame")
         SectionHandler.Parent = SectionFrame
-        SectionHandler.Size = UDim2.new(1, -10, 1, -26)
-        SectionHandler.Position = UDim2.new(0.5, 0, 0, 22)
-        SectionHandler.AnchorPoint = Vector2.new(0.5, 0)
-        SectionHandler.BackgroundColor3 = MainColor
-        SectionHandler.BackgroundTransparency = 0.99
+        SectionHandler.Size = UDim2.new(1, 0, 1, -22)
+        SectionHandler.Position = UDim2.new(0, 0, 0, 22)
+        SectionHandler.BackgroundTransparency = 1
         SectionHandler.ClipsDescendants = true
-        
-        local SectionCorner = Instance.new("UICorner")
-        SectionCorner.Parent = SectionHandler
-        SectionCorner.CornerRadius = UDim.new(0, 10)
-        
-        local SectionStroke = Instance.new("UIStroke")
-        SectionStroke.Parent = SectionHandler
-        SectionStroke.Transparency = 0.4
-        SectionStroke.Color = AccentColor
-        SectionStroke.Thickness = 1
         
         local SectionLayout = Instance.new("UIListLayout")
         SectionLayout.Parent = SectionHandler
         SectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        SectionLayout.Padding = UDim.new(0, 2)
+        SectionLayout.Padding = UDim.new(0, 1)
         
         SectionLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             if SectionLayout.AbsoluteContentSize.Y <= 1 then
-                SectionFrame.Size = UDim2.new(1, -5, 0, 0)
+                SectionFrame.Size = UDim2.new(1, -5, 0, 22)
             else
-                SectionFrame.Size = UDim2.new(1, -5, 0, SectionLayout.AbsoluteContentSize.Y + 26)
+                SectionFrame.Size = UDim2.new(1, -5, 0, SectionLayout.AbsoluteContentSize.Y + 22)
             end
         end)
         
@@ -815,13 +490,12 @@ function CreateTab(icon, name)
             Frame = SectionFrame,
             Label = SectionLabel
         }
-
+        
         function sectionData:AddToggle(config)
             config = config or {}
             local defaultValue = config.Default or false
             local callback = config.Callback or function() end
             local flag = config.Flag or nil
-            local icon = config.Icon
             local name = config.Name or "Toggle"
             
             local ToggleFrame = Instance.new("Frame")
@@ -835,39 +509,30 @@ function CreateTab(icon, name)
             Row.Size = UDim2.new(1, 0, 1, 0)
             Row.BackgroundTransparency = 1
             
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 16, AccentColor, 0.35)
-                IconLabel.Parent = Row
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -8)
-                IconLabel.Size = UDim2.new(0, 16, 0, 16)
-                iconOffset = 35
-            end
-            
+            -- БЕЛЫЙ ТЕКСТ ФУНКЦИИ
             local Label = Instance.new("TextLabel")
             Label.Parent = Row
             Label.Size = UDim2.new(0, 0, 1, 0)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0, 0)
+            Label.Position = UDim2.new(0, 10, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.35
+            Label.TextSize = 12
+            Label.TextTransparency = 0.2
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.TextTruncate = Enum.TextTruncate.AtEnd
             
-            local textSize = TextService:GetTextSize(Label.Text, 13, Enum.Font.GothamMedium, Vector2.new(999, 999))
+            local textSize = TextService:GetTextSize(Label.Text, 12, Enum.Font.GothamMedium, Vector2.new(999, 999))
             Label.Size = UDim2.new(0, textSize.X + 5, 1, 0)
             
             table.insert(AllItems, {Root = Label, Name = name})
             
+            -- КРАСНЫЙ ТУГЛ (выключен - серый, включен - красный)
             local ToggleBtn = Instance.new("Frame")
             ToggleBtn.Parent = Row
-            ToggleBtn.Size = UDim2.new(0, 30, 0, 18)
-            ToggleBtn.Position = UDim2.new(0, textSize.X + 13 + (iconOffset or 0), 0.5, -9)
-            ToggleBtn.BackgroundColor3 = GrayColor
+            ToggleBtn.Size = UDim2.new(0, 28, 0, 16)
+            ToggleBtn.Position = UDim2.new(0, textSize.X + 15, 0.5, -8)
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
             ToggleBtn.BorderSizePixel = 0
             ToggleBtn.ClipsDescendants = true
             
@@ -877,10 +542,10 @@ function CreateTab(icon, name)
             
             local ToggleCircle = Instance.new("Frame")
             ToggleCircle.Parent = ToggleBtn
-            ToggleCircle.Size = UDim2.new(0, 14, 0, 14)
+            ToggleCircle.Size = UDim2.new(0, 12, 0, 12)
             ToggleCircle.Position = UDim2.new(0.7, 0, 0.5, 0)
             ToggleCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-            ToggleCircle.BackgroundColor3 = Color3.fromRGB(210, 210, 210)
+            ToggleCircle.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
             ToggleCircle.BackgroundTransparency = 0.5
             ToggleCircle.BorderSizePixel = 0
             
@@ -893,23 +558,23 @@ function CreateTab(icon, name)
             local function UpdateToggle()
                 if ToggleState then
                     TweenService:Create(ToggleBtn, TweenInfo.new(0.175), {
-                        BackgroundColor3 = AccentColor,
+                        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
                         BackgroundTransparency = 0
                     }):Play()
                     TweenService:Create(ToggleCircle, TweenInfo.new(0.175), {
                         Position = UDim2.new(0.7, 0, 0.5, 0),
                         BackgroundTransparency = 0,
-                        BackgroundColor3 = Color3.fromRGB(210, 210, 210)
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                     }):Play()
                 else
                     TweenService:Create(ToggleBtn, TweenInfo.new(0.175), {
-                        BackgroundColor3 = GrayColor,
+                        BackgroundColor3 = Color3.fromRGB(120, 120, 120),
                         BackgroundTransparency = 0
                     }):Play()
                     TweenService:Create(ToggleCircle, TweenInfo.new(0.175), {
                         Position = UDim2.new(0.3, 0, 0.5, 0),
                         BackgroundTransparency = 0.5,
-                        BackgroundColor3 = Color3.fromRGB(210, 210, 210)
+                        BackgroundColor3 = Color3.fromRGB(200, 200, 200)
                     }):Play()
                 end
             end
@@ -956,39 +621,28 @@ function CreateTab(icon, name)
             local suffix = config.Type or ""
             local callback = config.Callback or function() end
             local flag = config.Flag or nil
-            local icon = config.Icon
             local name = config.Name or "Slider"
             
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Parent = SectionHandler
-            SliderFrame.Size = UDim2.new(1, 0, 0, 35)
+            SliderFrame.Size = UDim2.new(1, 0, 0, 32)
             SliderFrame.BackgroundTransparency = 1
             SliderFrame.LayoutOrder = 2
             
             local HeaderRow = Instance.new("Frame")
             HeaderRow.Parent = SliderFrame
-            HeaderRow.Size = UDim2.new(1, 0, 0, 20)
+            HeaderRow.Size = UDim2.new(1, 0, 0, 18)
             HeaderRow.BackgroundTransparency = 1
-            
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 14, AccentColor, 0.35)
-                IconLabel.Parent = HeaderRow
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -7)
-                IconLabel.Size = UDim2.new(0, 14, 0, 14)
-                iconOffset = 30
-            end
             
             local Label = Instance.new("TextLabel")
             Label.Parent = HeaderRow
-            Label.Size = UDim2.new(1, -(iconOffset + 65), 0, 15)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0.5, -7.5)
+            Label.Size = UDim2.new(1, -65, 0, 15)
+            Label.Position = UDim2.new(0, 10, 0.5, -7.5)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.35
+            Label.TextSize = 12
+            Label.TextTransparency = 0.2
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -996,22 +650,22 @@ function CreateTab(icon, name)
             
             local ValueLabel = Instance.new("TextLabel")
             ValueLabel.Parent = HeaderRow
-            ValueLabel.Size = UDim2.new(0, 60, 0, 15)
+            ValueLabel.Size = UDim2.new(0, 55, 0, 15)
             ValueLabel.Position = UDim2.new(1, -5, 0.5, -7.5)
             ValueLabel.AnchorPoint = Vector2.new(1, 0.5)
             ValueLabel.BackgroundTransparency = 1
             ValueLabel.Text = tostring(defaultValue) .. suffix
             ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ValueLabel.TextSize = 12
-            ValueLabel.TextTransparency = 0.35
+            ValueLabel.TextSize = 11
+            ValueLabel.TextTransparency = 0.2
             ValueLabel.Font = Enum.Font.GothamMedium
             ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
             
             local SliderBar = Instance.new("Frame")
             SliderBar.Parent = SliderFrame
-            SliderBar.Size = UDim2.new(1, -10, 0, 6)
-            SliderBar.Position = UDim2.new(0, 5, 0, 26)
-            SliderBar.BackgroundColor3 = Color3.fromRGB(30, 29, 36)
+            SliderBar.Size = UDim2.new(1, -10, 0, 5)
+            SliderBar.Position = UDim2.new(0, 5, 0, 24)
+            SliderBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             SliderBar.BorderSizePixel = 0
             
             local SliderCorner = Instance.new("UICorner")
@@ -1021,7 +675,7 @@ function CreateTab(icon, name)
             local SliderFill = Instance.new("Frame")
             SliderFill.Parent = SliderBar
             SliderFill.Size = UDim2.new(0.5, 0, 1, 0)
-            SliderFill.BackgroundColor3 = AccentColor
+            SliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
             SliderFill.BorderSizePixel = 0
             
             local FillCorner = Instance.new("UICorner")
@@ -1078,7 +732,7 @@ function CreateTab(icon, name)
                     SliderValue = math.clamp(v, min, max)
                     SliderValue = tonumber(string.format("%." .. rounding .. "f", SliderValue))
                     UpdateSlider()
-                    callback(SliderValue)
+                    callback(v)
                 end,
                 Root = SliderFrame
             }
@@ -1093,34 +747,23 @@ function CreateTab(icon, name)
         function sectionData:AddButton(config)
             config = config or {}
             local callback = config.Callback or function() end
-            local icon = config.Icon
             local name = config.Name or "Button"
             
             local ButtonFrame = Instance.new("Frame")
             ButtonFrame.Parent = SectionHandler
-            ButtonFrame.Size = UDim2.new(1, 0, 0, 30)
+            ButtonFrame.Size = UDim2.new(1, 0, 0, 28)
             ButtonFrame.BackgroundTransparency = 1
             ButtonFrame.LayoutOrder = 3
             
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 16, AccentColor, 0.2)
-                IconLabel.Parent = ButtonFrame
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -8)
-                IconLabel.Size = UDim2.new(0, 16, 0, 16)
-                iconOffset = 35
-            end
-            
             local Label = Instance.new("TextLabel")
             Label.Parent = ButtonFrame
-            Label.Size = UDim2.new(1, -(iconOffset or 20), 0, 15)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0.5, -7.5)
+            Label.Size = UDim2.new(1, 0, 0, 15)
+            Label.Position = UDim2.new(0, 10, 0.5, -7.5)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.2
+            Label.TextSize = 12
+            Label.TextTransparency = 0.15
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -1131,8 +774,8 @@ function CreateTab(icon, name)
             Line.Size = UDim2.new(1, -20, 0, 1)
             Line.Position = UDim2.new(0.5, 0, 1, 0)
             Line.AnchorPoint = Vector2.new(0.5, 1)
-            Line.BackgroundColor3 = BorderColor
-            Line.BackgroundTransparency = 0.65
+            Line.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+            Line.BackgroundTransparency = 0.5
             
             local Input = Instance.new("ImageButton")
             Input.Parent = ButtonFrame
@@ -1162,46 +805,27 @@ function CreateTab(icon, name)
         
         function sectionData:AddLabel(config)
             config = config or {}
-            local icon = config.Icon
             local name = config.Name or "Label"
             
             local LabelFrame = Instance.new("Frame")
             LabelFrame.Parent = SectionHandler
-            LabelFrame.Size = UDim2.new(1, 0, 0, 30)
+            LabelFrame.Size = UDim2.new(1, 0, 0, 24)
             LabelFrame.BackgroundTransparency = 1
             LabelFrame.LayoutOrder = 4
             
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 14, ContentColor, 0.35)
-                IconLabel.Parent = LabelFrame
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -7)
-                IconLabel.Size = UDim2.new(0, 14, 0, 14)
-                iconOffset = 30
-            end
-            
             local Label = Instance.new("TextLabel")
             Label.Parent = LabelFrame
-            Label.Size = UDim2.new(1, -(iconOffset or 20), 1, 0)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0, 0)
+            Label.Size = UDim2.new(1, 0, 1, 0)
+            Label.Position = UDim2.new(0, 10, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = name
-            Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.35
+            Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Label.TextSize = 11
+            Label.TextTransparency = 0.3
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             
             table.insert(AllItems, {Root = Label, Name = name})
-            
-            local Line = Instance.new("Frame")
-            Line.Parent = LabelFrame
-            Line.Size = UDim2.new(1, -20, 0, 1)
-            Line.Position = UDim2.new(0.5, 0, 1, 0)
-            Line.AnchorPoint = Vector2.new(0.5, 1)
-            Line.BackgroundColor3 = BorderColor
-            Line.BackgroundTransparency = 0.65
             
             return {
                 Root = LabelFrame,
@@ -1215,52 +839,41 @@ function CreateTab(icon, name)
             local placeholder = config.Placeholder or "Enter text..."
             local callback = config.Callback or function() end
             local flag = config.Flag or nil
-            local size = config.Size or 150
-            local icon = config.Icon
+            local size = config.Size or 120
             local name = config.Name or "Text"
             
             local TextFrame = Instance.new("Frame")
             TextFrame.Parent = SectionHandler
-            TextFrame.Size = UDim2.new(1, 0, 0, 30)
+            TextFrame.Size = UDim2.new(1, 0, 0, 28)
             TextFrame.BackgroundTransparency = 1
             TextFrame.LayoutOrder = 5
-            
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 14, AccentColor, 0.35)
-                IconLabel.Parent = TextFrame
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -7)
-                IconLabel.Size = UDim2.new(0, 14, 0, 14)
-                iconOffset = 30
-            end
             
             local Label = Instance.new("TextLabel")
             Label.Parent = TextFrame
             Label.Size = UDim2.new(0, 0, 1, 0)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0, 0)
+            Label.Position = UDim2.new(0, 10, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.35
+            Label.TextSize = 12
+            Label.TextTransparency = 0.2
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             
-            local textSize = TextService:GetTextSize(Label.Text, 13, Enum.Font.GothamMedium, Vector2.new(999, 999))
+            local textSize = TextService:GetTextSize(Label.Text, 12, Enum.Font.GothamMedium, Vector2.new(999, 999))
             Label.Size = UDim2.new(0, textSize.X + 5, 1, 0)
             
             local Input = Instance.new("TextBox")
             Input.Parent = TextFrame
             Input.Size = UDim2.new(0, size, 1, -4)
-            Input.Position = UDim2.new(0, textSize.X + (iconOffset or 0) + 15, 0.5, 0)
+            Input.Position = UDim2.new(0, textSize.X + 15, 0.5, 0)
             Input.AnchorPoint = Vector2.new(0, 0.5)
-            Input.BackgroundColor3 = Color3.fromRGB(26, 28, 36)
+            Input.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             Input.BorderSizePixel = 0
             Input.Text = tostring(defaultValue)
             Input.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Input.TextSize = 12
-            Input.TextTransparency = 0.35
+            Input.TextSize = 11
+            Input.TextTransparency = 0.2
             Input.Font = Enum.Font.GothamMedium
             Input.TextXAlignment = Enum.TextXAlignment.Left
             Input.PlaceholderText = placeholder
@@ -1268,12 +881,7 @@ function CreateTab(icon, name)
             
             local InputCorner = Instance.new("UICorner")
             InputCorner.Parent = Input
-            InputCorner.CornerRadius = UDim.new(0, 4)
-            
-            local InputStroke = Instance.new("UIStroke")
-            InputStroke.Parent = Input
-            InputStroke.Transparency = 0.65
-            InputStroke.Color = BorderColor
+            InputCorner.CornerRadius = UDim.new(0, 3)
             
             Input:GetPropertyChangedSignal("Text"):Connect(function()
                 callback(Input.Text)
@@ -1293,41 +901,30 @@ function CreateTab(icon, name)
             
             return textLib
         end
-
+        
         function sectionData:AddCycleButton(config)
             config = config or {}
             local options = config.Options or {}
             local default = config.Default or options[1] or "Spin"
             local callback = config.Callback or function() end
             local flag = config.Flag or nil
-            local icon = config.Icon
-            local name = config.Name or "Spin Mode"
+            local name = config.Name or "Mode"
             
             local CycleFrame = Instance.new("Frame")
             CycleFrame.Parent = SectionHandler
-            CycleFrame.Size = UDim2.new(1, 0, 0, 50)
+            CycleFrame.Size = UDim2.new(1, 0, 0, 44)
             CycleFrame.BackgroundTransparency = 1
             CycleFrame.LayoutOrder = 6
             
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 14, AccentColor, 0.35)
-                IconLabel.Parent = CycleFrame
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -7)
-                IconLabel.Size = UDim2.new(0, 14, 0, 14)
-                iconOffset = 30
-            end
-            
             local Label = Instance.new("TextLabel")
             Label.Parent = CycleFrame
-            Label.Size = UDim2.new(1, -(iconOffset or 20), 0, 18)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0, 0)
+            Label.Size = UDim2.new(1, 0, 0, 16)
+            Label.Position = UDim2.new(0, 10, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.35
+            Label.TextSize = 12
+            Label.TextTransparency = 0.2
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -1345,18 +942,18 @@ function CreateTab(icon, name)
             
             local Btn = Instance.new("TextButton")
             Btn.Parent = CycleFrame
-            Btn.Size = UDim2.new(0, 80, 0, 26)
-            Btn.Position = UDim2.new(0, iconOffset or 10, 0, 22)
-            Btn.BackgroundColor3 = AccentColor
+            Btn.Size = UDim2.new(0, 80, 0, 22)
+            Btn.Position = UDim2.new(0, 10, 0, 20)
+            Btn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
             Btn.Text = default
             Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Btn.TextSize = 12
+            Btn.TextSize = 11
             Btn.Font = Enum.Font.GothamMedium
             Btn.BorderSizePixel = 0
             
             local BtnCorner = Instance.new("UICorner")
             BtnCorner.Parent = Btn
-            BtnCorner.CornerRadius = UDim.new(0, 4)
+            BtnCorner.CornerRadius = UDim.new(0, 3)
             
             Btn.MouseButton1Click:Connect(function()
                 CurrentIndex = CurrentIndex % #options + 1
@@ -1392,33 +989,22 @@ function CreateTab(icon, name)
             config = config or {}
             local name = config.Name or "Preset"
             local shaderData = config.ShaderData or {}
-            local icon = config.Icon
             
             local PresetFrame = Instance.new("Frame")
             PresetFrame.Parent = SectionHandler
-            PresetFrame.Size = UDim2.new(1, 0, 0, 30)
+            PresetFrame.Size = UDim2.new(1, 0, 0, 28)
             PresetFrame.BackgroundTransparency = 1
             PresetFrame.LayoutOrder = 7
             
-            local iconOffset = 0
-            
-            if icon then
-                local IconLabel = CreateIconLabel(icon, 16, AccentColor, 0.2)
-                IconLabel.Parent = PresetFrame
-                IconLabel.Position = UDim2.new(0, 10, 0.5, -8)
-                IconLabel.Size = UDim2.new(0, 16, 0, 16)
-                iconOffset = 35
-            end
-            
             local Label = Instance.new("TextLabel")
             Label.Parent = PresetFrame
-            Label.Size = UDim2.new(1, -(iconOffset or 20), 0, 15)
-            Label.Position = UDim2.new(0, iconOffset or 10, 0.5, -7.5)
+            Label.Size = UDim2.new(1, 0, 0, 15)
+            Label.Position = UDim2.new(0, 10, 0.5, -7.5)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 13
-            Label.TextTransparency = 0.2
+            Label.TextSize = 12
+            Label.TextTransparency = 0.15
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -1429,8 +1015,8 @@ function CreateTab(icon, name)
             Line.Size = UDim2.new(1, -20, 0, 1)
             Line.Position = UDim2.new(0.5, 0, 1, 0)
             Line.AnchorPoint = Vector2.new(0.5, 1)
-            Line.BackgroundColor3 = BorderColor
-            Line.BackgroundTransparency = 0.65
+            Line.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+            Line.BackgroundTransparency = 0.5
             
             local Input = Instance.new("ImageButton")
             Input.Parent = PresetFrame
@@ -1462,17 +1048,17 @@ function CreateTab(icon, name)
                 end
             end)
             
-Input.MouseEnter:Connect(function()
-    TweenService:Create(ButtonFrame, TweenInfo.new(0.2), {
-        BackgroundTransparency = 1
-    }):Play()
-end)
-
-Input.MouseEnter:Connect(function()
-    TweenService:Create(ButtonFrame, TweenInfo.new(0.2), {
-        BackgroundTransparency = 0
-    }):Play()
-end)
+            Input.MouseEnter:Connect(function()
+                TweenService:Create(PresetFrame, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.35
+                }):Play()
+            end)
+            
+            Input.MouseLeave:Connect(function()
+                TweenService:Create(PresetFrame, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 1
+                }):Play()
+            end)
             
             return {
                 Root = PresetFrame,
@@ -1485,50 +1071,18 @@ end)
     return tabData
 end
 
-SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    local query = string.lower(SearchBox.Text)
-    if query == "" then
-        for _, item in ipairs(AllItems) do
-            if item.Root then
-                local parent = item.Root.Parent
-                while parent and parent ~= TabContainer do
-                    if parent:IsA("Frame") and parent.Parent then
-                        parent.Visible = true
-                    end
-                    parent = parent.Parent
-                end
-                item.Root.Parent.Visible = true
-            end
-        end
-        return
-    end
-    
-    for _, item in ipairs(AllItems) do
-        local visible = string.find(string.lower(item.Name or ""), query, 1, true) ~= nil
-        if item.Root then
-            local parent = item.Root.Parent
-            while parent and parent ~= TabContainer do
-                if parent:IsA("Frame") and parent.Parent then
-                    parent.Visible = visible
-                end
-                parent = parent.Parent
-            end
-            item.Root.Parent.Visible = visible
-        end
-    end
-end)
+-- ===== СОЗДАНИЕ ВКЛАДОК И ФУНКЦИЙ =====
+local MainTab = CreateTab("Main")
 
-local MainTab = CreateTab(GetIcon("house"), "Main")
+local BHopSection = MainTab:AddSection({Name = "BUNNY HOP"})
+BHopSection:AddToggle({Name = "Auto BunnyHop", Default = false, Callback = function(v) Config.BHopEnabled = v end, Flag = "BHopEnabled"})
 
-local BHopSection = MainTab:AddSection({Name = "BUNNY HOP", Position = "left", Icon = GetIcon("arrow-up")})
-BHopSection:AddToggle({Name = "Auto BunnyHop", Icon = GetIcon("arrow-up"), Default = false, Callback = function(v) Config.BHopEnabled = v end, Flag = "BHopEnabled"})
-
-local MovementSection = MainTab:AddSection({Name = "MOVEMENT", Position = "left", Icon = GetIcon("zap")})
-MovementSection:AddToggle({Name = "CFrame Speed", Icon = GetIcon("gauge"), Default = false, Callback = function(v) Config.SpeedEnabled = v end, Flag = "SpeedEnabled"})
-MovementSection:AddSlider({Name = "Speed Value", Icon = GetIcon("arrow-up-circle"), Default = 16, Min = 1, Max = 300, Type = "", Callback = function(v) Config.SpeedValue = v end, Flag = "SpeedValue"})
-MovementSection:AddToggle({Name = "CTRL + Click TP", Icon = GetIcon("mouse-pointer"), Default = false, Callback = function(v) Config.TpEnabled = v end, Flag = "TpEnabled"})
-MovementSection:AddSlider({Name = "TP Height", Icon = GetIcon("arrow-up"), Default = 10, Min = 1, Max = 1000, Type = "", Callback = function(v) Config.TpHeight = v end, Flag = "TpHeight"})
-MovementSection:AddToggle({Name = "Skip Map", Icon = GetIcon("map-pin"), Default = false, Callback = function(v)
+local MovementSection = MainTab:AddSection({Name = "MOVEMENT"})
+MovementSection:AddToggle({Name = "CFrame Speed", Default = false, Callback = function(v) Config.SpeedEnabled = v end, Flag = "SpeedEnabled"})
+MovementSection:AddSlider({Name = "Speed Value", Default = 16, Min = 1, Max = 300, Type = "", Callback = function(v) Config.SpeedValue = v end, Flag = "SpeedValue"})
+MovementSection:AddToggle({Name = "CTRL + Click TP", Default = false, Callback = function(v) Config.TpEnabled = v end, Flag = "TpEnabled"})
+MovementSection:AddSlider({Name = "TP Height", Default = 10, Min = 1, Max = 1000, Type = "", Callback = function(v) Config.TpHeight = v end, Flag = "TpHeight"})
+MovementSection:AddToggle({Name = "Skip Map", Default = false, Callback = function(v)
     Config.SkipMapEnabled = v
     if v then
         Config.SkipMapPos = Vector3.new(0, 5000, 0)
@@ -1570,11 +1124,11 @@ MovementSection:AddToggle({Name = "Skip Map", Icon = GetIcon("map-pin"), Default
         end
     end
 end, Flag = "SkipMapEnabled"})
-MovementSection:AddToggle({Name = "TP Walk", Icon = GetIcon("zap"), Default = false, Callback = function(v) Config.TpWalkEnabled = v end, Flag = "TpWalkEnabled"})
-MovementSection:AddSlider({Name = "TP Walk Speed", Icon = GetIcon("arrow-up-circle"), Default = 1, Min = 1, Max = 200, Type = "", Callback = function(v) Config.TpWalkValue = v end, Flag = "TpWalkValue"})
-MovementSection:AddToggle({Name = "Super Bounce", Icon = GetIcon("arrow-up"), Default = false, Callback = function(v) Config.SuperBounceEnabled = v end, Flag = "SuperBounceEnabled"})
-MovementSection:AddTextInput({Name = "Bounce Height", Icon = GetIcon("arrow-up"), Default = "190", Placeholder = "190", Size = 100, Callback = function(v) local num = tonumber(v) if num then Config.SuperBounceHeight = num end end})
-MovementSection:AddButton({Name = "Bounce!", Icon = GetIcon("arrow-up"), Callback = function()
+MovementSection:AddToggle({Name = "TP Walk", Default = false, Callback = function(v) Config.TpWalkEnabled = v end, Flag = "TpWalkEnabled"})
+MovementSection:AddSlider({Name = "TP Walk Speed", Default = 1, Min = 1, Max = 200, Type = "", Callback = function(v) Config.TpWalkValue = v end, Flag = "TpWalkValue"})
+MovementSection:AddToggle({Name = "Super Bounce", Default = false, Callback = function(v) Config.SuperBounceEnabled = v end, Flag = "SuperBounceEnabled"})
+MovementSection:AddTextInput({Name = "Bounce Height", Default = "190", Placeholder = "190", Size = 80, Callback = function(v) local num = tonumber(v) if num then Config.SuperBounceHeight = num end end})
+MovementSection:AddButton({Name = "Bounce!", Callback = function()
     if not LocalPlayer.Character then return end
     local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
     local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -1583,16 +1137,16 @@ MovementSection:AddButton({Name = "Bounce!", Icon = GetIcon("arrow-up"), Callbac
         rootPart.Velocity = Vector3.new(rootPart.Velocity.X, Config.SuperBounceHeight, rootPart.Velocity.Z)
     end
 end})
-MovementSection:AddToggle({Name = "Super Jump", Icon = GetIcon("arrow-up"), Default = false, Callback = function(v) Config.SuperJumpEnabled = v end, Flag = "SuperJumpEnabled"})
-MovementSection:AddSlider({Name = "Super Jump Power", Icon = GetIcon("zap"), Default = 250, Min = 1, Max = 1000, Type = "", Callback = function(v) Config.SuperJumpPower = v end, Flag = "SuperJumpPower"})
+MovementSection:AddToggle({Name = "Super Jump", Default = false, Callback = function(v) Config.SuperJumpEnabled = v end, Flag = "SuperJumpEnabled"})
+MovementSection:AddSlider({Name = "Super Jump Power", Default = 250, Min = 1, Max = 1000, Type = "", Callback = function(v) Config.SuperJumpPower = v end, Flag = "SuperJumpPower"})
 
-local SpinSection = MainTab:AddSection({Name = "SPIN BOT", Position = "right", Icon = GetIcon("rotate-cw")})
-SpinSection:AddToggle({Name = "Spin Bot", Icon = GetIcon("rotate-cw"), Default = false, Callback = function(v) Config.SpinEnabled = v end, Flag = "SpinEnabled"})
-SpinSection:AddCycleButton({Name = "Spin Mode", Icon = GetIcon("list"), Options = {"Spin", "Jitter", "Slide", "Random", "Down", "Up", "Left", "Right"}, Default = "Spin", Callback = function(v) Config.SpinMode = v end, Flag = "SpinMode"})
-SpinSection:AddSlider({Name = "Spin Speed", Icon = GetIcon("speedometer"), Default = 15, Min = 1, Max = 50, Type = "", Callback = function(v) Config.SpinSpeed = v end, Flag = "SpinSpeed"})
+local SpinSection = MainTab:AddSection({Name = "SPIN BOT"})
+SpinSection:AddToggle({Name = "Spin Bot", Default = false, Callback = function(v) Config.SpinEnabled = v end, Flag = "SpinEnabled"})
+SpinSection:AddCycleButton({Name = "Spin Mode", Options = {"Spin", "Jitter", "Slide", "Random", "Down", "Up", "Left", "Right"}, Default = "Spin", Callback = function(v) Config.SpinMode = v end, Flag = "SpinMode"})
+SpinSection:AddSlider({Name = "Spin Speed", Default = 15, Min = 1, Max = 50, Type = "", Callback = function(v) Config.SpinSpeed = v end, Flag = "SpinSpeed"})
 
-local CombatSection = MainTab:AddSection({Name = "COMBAT", Position = "left", Icon = GetIcon("sword")})
-CombatSection:AddToggle({Name = "Defibrillator Aura", Icon = GetIcon("heart"), Default = false, Callback = function(state)
+local CombatSection = MainTab:AddSection({Name = "COMBAT"})
+CombatSection:AddToggle({Name = "Defibrillator Aura", Default = false, Callback = function(state)
     Config.DefibAura = state
     if state then
         if Config.DefibConnection then Config.DefibConnection:Disconnect() end
@@ -1620,7 +1174,7 @@ CombatSection:AddToggle({Name = "Defibrillator Aura", Icon = GetIcon("heart"), D
                                         ReplicatedStorage.Events.UpdateCharacterDataRegistry:FireServer({buffer.fromstring("\008\000"), buffer.fromstring("\003")})
                                         defibEquipped = true
                                     end
-                                    ToolAction:FireServer(buffer.fromstring("\001\001\001\001"), tag)
+                                    ReplicatedStorage.Events.ToolAction:FireServer(buffer.fromstring("\001\001\001\001"), tag)
                                 end
                             end
                         end
@@ -1635,8 +1189,8 @@ CombatSection:AddToggle({Name = "Defibrillator Aura", Icon = GetIcon("heart"), D
         end
     end
 end, Flag = "DefibAura"})
-CombatSection:AddTextInput({Name = "Aura Range", Icon = GetIcon("target"), Default = "20", Placeholder = "20 or inf", Size = 100, Callback = function(v) if v == "inf" then Config.DefibRange = math.huge else local num = tonumber(v) if num then Config.DefibRange = num end end end})
-CombatSection:AddButton({Name = "Infinite Range", Icon = GetIcon("target"), Callback = function()
+CombatSection:AddTextInput({Name = "Aura Range", Default = "20", Placeholder = "20 or inf", Size = 80, Callback = function(v) if v == "inf" then Config.DefibRange = math.huge else local num = tonumber(v) if num then Config.DefibRange = num end end end})
+CombatSection:AddButton({Name = "Infinite Range", Callback = function()
     local function setInfiniteRange(data)
         if type(data) ~= "table" then return end
         for key, value in pairs(data) do
@@ -1671,11 +1225,11 @@ CombatSection:AddButton({Name = "Infinite Range", Icon = GetIcon("target"), Call
         end
     end
 end})
-CombatSection:AddButton({Name = "Portal Bypass", Icon = GetIcon("link"), Callback = function()
+CombatSection:AddButton({Name = "Portal Bypass", Callback = function()
     local methodModule = getrenv().require(ReplicatedStorage.Objects.Game.Tool.Tasks.Types.Portal)
     methodModule.IsPortalPossible = function(...) return true end
 end})
-CombatSection:AddToggle({Name = "Build Offset", Icon = GetIcon("move"), Default = false, Callback = function(state)
+CombatSection:AddToggle({Name = "Build Offset", Default = false, Callback = function(state)
     Config.BuildOffsetEnabled = state
     if state then
         local buildModule = getrenv().require(ReplicatedStorage.Objects.Game.Tool.Tasks.Types.Build)
@@ -1689,10 +1243,10 @@ CombatSection:AddToggle({Name = "Build Offset", Icon = GetIcon("move"), Default 
         end
     end
 end})
-CombatSection:AddTextInput({Name = "Offset X", Icon = GetIcon("arrow-right"), Default = "0", Placeholder = "0", Size = 80, Callback = function(v) local num = tonumber(v) or 0 Config.BuildOffsetX = num end})
-CombatSection:AddTextInput({Name = "Offset Y", Icon = GetIcon("arrow-up"), Default = "0", Placeholder = "0", Size = 80, Callback = function(v) local num = tonumber(v) or 0 Config.BuildOffsetY = num end})
-CombatSection:AddTextInput({Name = "Offset Z", Icon = GetIcon("arrow-left"), Default = "0", Placeholder = "0", Size = 80, Callback = function(v) local num = tonumber(v) or 0 Config.BuildOffsetZ = num end})
-CombatSection:AddButton({Name = "No Weapon Spread", Icon = GetIcon("crosshair"), Callback = function()
+CombatSection:AddTextInput({Name = "Offset X", Default = "0", Placeholder = "0", Size = 60, Callback = function(v) local num = tonumber(v) or 0 Config.BuildOffsetX = num end})
+CombatSection:AddTextInput({Name = "Offset Y", Default = "0", Placeholder = "0", Size = 60, Callback = function(v) local num = tonumber(v) or 0 Config.BuildOffsetY = num end})
+CombatSection:AddTextInput({Name = "Offset Z", Default = "0", Placeholder = "0", Size = 60, Callback = function(v) local num = tonumber(v) or 0 Config.BuildOffsetZ = num end})
+CombatSection:AddButton({Name = "No Weapon Spread", Callback = function()
     for _, tool in ipairs(ReplicatedStorage.Tools:GetChildren()) do
         if tool:IsA("ModuleScript") then
             local success, module = pcall(require, tool)
@@ -1707,7 +1261,7 @@ CombatSection:AddButton({Name = "No Weapon Spread", Icon = GetIcon("crosshair"),
         end
     end
 end})
-CombatSection:AddButton({Name = "No Tool Delay", Icon = GetIcon("zap"), Callback = function()
+CombatSection:AddButton({Name = "No Tool Delay", Callback = function()
     local function setFastShoot(data)
         if type(data) ~= "table" then return end
         for key, value in pairs(data) do
@@ -1740,7 +1294,7 @@ CombatSection:AddButton({Name = "No Tool Delay", Icon = GetIcon("zap"), Callback
         end
     end
 end})
-CombatSection:AddToggle({Name = "Auto Whistle", Icon = GetIcon("music"), Default = false, Callback = function(state)
+CombatSection:AddToggle({Name = "Auto Whistle", Default = false, Callback = function(state)
     Config.AutoWhistleEnabled = state
     if state then
         if Config.WhistleConnection then Config.WhistleConnection:Disconnect() end
@@ -1765,7 +1319,7 @@ CombatSection:AddToggle({Name = "Auto Whistle", Icon = GetIcon("music"), Default
         end
     end
 end, Flag = "AutoWhistleEnabled"})
-CombatSection:AddToggle({Name = "God Mode", Icon = GetIcon("shield"), Default = false, Callback = function(state)
+CombatSection:AddToggle({Name = "God Mode", Default = false, Callback = function(state)
     Config.GodModeEnabled = state
     if state then
         if Config.GodModeConnection then Config.GodModeConnection:Disconnect() end
@@ -1795,7 +1349,7 @@ CombatSection:AddToggle({Name = "God Mode", Icon = GetIcon("shield"), Default = 
         end
     end
 end, Flag = "GodModeEnabled"})
-CombatSection:AddToggle({Name = "Self Revive", Icon = GetIcon("heart"), Default = false, Callback = function(state)
+CombatSection:AddToggle({Name = "Self Revive", Default = false, Callback = function(state)
     Config.SelfReviveEnabled = state
     if state then
         if Config.ReviveConnection then Config.ReviveConnection:Disconnect() end
@@ -1827,13 +1381,13 @@ CombatSection:AddToggle({Name = "Self Revive", Icon = GetIcon("heart"), Default 
             if hrp and not waitingForRespawn then
                 deathPos = hrp.Position
             end
-            local charData = CharacterService:GetCharacterFromPlayer(LocalPlayer)
+            local charData = require(ReplicatedStorage:WaitForChild("Services"):WaitForChild("Asset"):WaitForChild("CharacterService")):GetCharacterFromPlayer(LocalPlayer)
             if charData and charData.DataRegistry:Get("Downed") then
                 if not hasRevived then
                     hasRevived = true
                     waitingForRespawn = true
                     pcall(function()
-                        changePlayerMode:FireServer(true)
+                        ReplicatedStorage.Events.SetPlayerMode:FireServer(true)
                     end)
                     task.delay(10, function()
                         hasRevived = false
@@ -1850,8 +1404,8 @@ CombatSection:AddToggle({Name = "Self Revive", Icon = GetIcon("heart"), Default 
     end
 end, Flag = "SelfReviveEnabled"})
 
-local UtilitySection = MainTab:AddSection({Name = "UTILITY", Position = "left", Icon = GetIcon("wrench")})
-UtilitySection:AddToggle({Name = "Custom Gravity", Icon = GetIcon("arrow-down"), Default = false, Callback = function(state)
+local UtilitySection = MainTab:AddSection({Name = "UTILITY"})
+UtilitySection:AddToggle({Name = "Custom Gravity", Default = false, Callback = function(state)
     Config.GravityEnabled = state
     if state then
         WS.Gravity = Config.GravityValue
@@ -1859,7 +1413,7 @@ UtilitySection:AddToggle({Name = "Custom Gravity", Icon = GetIcon("arrow-down"),
         WS.Gravity = 196.2
     end
 end, Flag = "GravityEnabled"})
-UtilitySection:AddTextInput({Name = "Gravity Value", Icon = GetIcon("hash"), Default = "196.2", Placeholder = "196.2", Size = 80, Callback = function(v)
+UtilitySection:AddTextInput({Name = "Gravity Value", Default = "196.2", Placeholder = "196.2", Size = 80, Callback = function(v)
     local num = tonumber(v)
     if num then
         Config.GravityValue = num
@@ -1868,7 +1422,7 @@ UtilitySection:AddTextInput({Name = "Gravity Value", Icon = GetIcon("hash"), Def
         end
     end
 end})
-UtilitySection:AddToggle({Name = "Jump Pad Boost", Icon = GetIcon("arrow-up"), Default = false, Callback = function(state)
+UtilitySection:AddToggle({Name = "Jump Pad Boost", Default = false, Callback = function(state)
     Config.JumpPadEnabled = state
     if state then
         local jumpPadModule = require(ReplicatedStorage.Items.BaseItems.Loadout.Deployables.JumpPad.Modules.Client)
@@ -1884,16 +1438,16 @@ UtilitySection:AddToggle({Name = "Jump Pad Boost", Icon = GetIcon("arrow-up"), D
         end
     end
 end, Flag = "JumpPadEnabled"})
-UtilitySection:AddTextInput({Name = "Jump Power", Icon = GetIcon("arrow-up"), Default = "360", Placeholder = "360", Size = 80, Callback = function(v) local num = tonumber(v) if num then Config.JumpPadValue = num end end})
+UtilitySection:AddTextInput({Name = "Jump Power", Default = "360", Placeholder = "360", Size = 80, Callback = function(v) local num = tonumber(v) if num then Config.JumpPadValue = num end end})
 
-local TeleportSection = MainTab:AddSection({Name = "MINI TELEPORT", Position = "right", Icon = GetIcon("navigation")})
-TeleportSection:AddButton({Name = "Teleport to Spawn", Icon = GetIcon("home"), Callback = function() teleportToRandomSpawn(Vector3.new(0, 3, 0)) end})
-TeleportSection:AddButton({Name = "Teleport to Random Player", Icon = GetIcon("users"), Callback = function() teleportToRandomPlayer(Vector3.new(0, 3, 0)) end})
-TeleportSection:AddButton({Name = "Teleport to Downed Player", Icon = GetIcon("heart"), Callback = function() teleportToRandomDowned(Vector3.new(0, 3, 0)) end})
-TeleportSection:AddButton({Name = "Teleport to Ticket", Icon = GetIcon("ticket"), Callback = function() teleportToRandomTicket(Vector3.new(0, 3, 0)) end})
-TeleportSection:AddButton({Name = "Teleport to Security Part", Icon = GetIcon("shield"), Callback = function() teleportToSecurityPart(Vector3.new(0, 3, 0)) end})
-TeleportSection:AddTextInput({Name = "Coordinates X Y Z", Icon = GetIcon("hash"), Default = "", Placeholder = "0 0 0", Size = 120, Callback = function(v) Config.TeleportCoords = v end})
-TeleportSection:AddButton({Name = "Teleport to Coordinates", Icon = GetIcon("target"), Callback = function()
+local TeleportSection = MainTab:AddSection({Name = "MINI TELEPORT"})
+TeleportSection:AddButton({Name = "Teleport to Spawn", Callback = function() teleportToRandomSpawn(Vector3.new(0, 3, 0)) end})
+TeleportSection:AddButton({Name = "Teleport to Random Player", Callback = function() teleportToRandomPlayer(Vector3.new(0, 3, 0)) end})
+TeleportSection:AddButton({Name = "Teleport to Downed Player", Callback = function() teleportToRandomDowned(Vector3.new(0, 3, 0)) end})
+TeleportSection:AddButton({Name = "Teleport to Ticket", Callback = function() teleportToRandomTicket(Vector3.new(0, 3, 0)) end})
+TeleportSection:AddButton({Name = "Teleport to Security Part", Callback = function() teleportToSecurityPart(Vector3.new(0, 3, 0)) end})
+TeleportSection:AddTextInput({Name = "Coordinates X Y Z", Default = "", Placeholder = "0 0 0", Size = 120, Callback = function(v) Config.TeleportCoords = v end})
+TeleportSection:AddButton({Name = "Teleport to Coordinates", Callback = function()
     if not Config.TeleportCoords then return end
     local x, y, z = Config.TeleportCoords:match("([%d.-]+)%s+([%d.-]+)%s+([%d.-]+)")
     if x and y and z then
@@ -1904,62 +1458,55 @@ TeleportSection:AddButton({Name = "Teleport to Coordinates", Icon = GetIcon("tar
     end
 end})
 
-local ShadersTab = CreateTab(GetIcon("layers"), "Shaders")
+-- ===== VISUALS TAB =====
+local VisualsTab = CreateTab("Visuals")
 
-local StandardSection = ShadersTab:AddSection({Name = "STANDARD", Position = "left", Icon = GetIcon("sun")})
-StandardSection:AddShaderPreset({Name = "Default", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(128, 128, 128), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(128, 128, 128)}}})
-StandardSection:AddShaderPreset({Name = "Morning", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 0.8, Ambient = Color3.fromRGB(255, 200, 150), ClockTime = 6, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 180, 160)}}})
-StandardSection:AddShaderPreset({Name = "Midday", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 1.2, Ambient = Color3.fromRGB(200, 220, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 220, 255)}}})
-StandardSection:AddShaderPreset({Name = "Afternoon", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 0.9, Ambient = Color3.fromRGB(255, 180, 100), ClockTime = 16, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 160, 120)}}})
-StandardSection:AddShaderPreset({Name = "Evening", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 0.6, Ambient = Color3.fromRGB(255, 150, 80), ClockTime = 19, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(180, 130, 100)}}})
-StandardSection:AddShaderPreset({Name = "Night", Icon = GetIcon("moon"), ShaderData = {Lighting = {Brightness = 0.1, Ambient = Color3.fromRGB(30, 30, 50), ClockTime = 23, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(20, 20, 40)}}})
-StandardSection:AddShaderPreset({Name = "Midnight", Icon = GetIcon("moon"), ShaderData = {Lighting = {Brightness = 0.05, Ambient = Color3.fromRGB(10, 10, 20), ClockTime = 0, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(5, 5, 15)}}})
+local ShadersSection = VisualsTab:AddSection({Name = "SHADERS"})
+ShadersSection:AddShaderPreset({Name = "Default", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(128, 128, 128), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(128, 128, 128)}}})
+ShadersSection:AddShaderPreset({Name = "Morning", ShaderData = {Lighting = {Brightness = 0.8, Ambient = Color3.fromRGB(255, 200, 150), ClockTime = 6, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 180, 160)}}})
+ShadersSection:AddShaderPreset({Name = "Midday", ShaderData = {Lighting = {Brightness = 1.2, Ambient = Color3.fromRGB(200, 220, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 220, 255)}}})
+ShadersSection:AddShaderPreset({Name = "Afternoon", ShaderData = {Lighting = {Brightness = 0.9, Ambient = Color3.fromRGB(255, 180, 100), ClockTime = 16, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 160, 120)}}})
+ShadersSection:AddShaderPreset({Name = "Evening", ShaderData = {Lighting = {Brightness = 0.6, Ambient = Color3.fromRGB(255, 150, 80), ClockTime = 19, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(180, 130, 100)}}})
+ShadersSection:AddShaderPreset({Name = "Night", ShaderData = {Lighting = {Brightness = 0.1, Ambient = Color3.fromRGB(30, 30, 50), ClockTime = 23, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(20, 20, 40)}}})
+ShadersSection:AddShaderPreset({Name = "Midnight", ShaderData = {Lighting = {Brightness = 0.05, Ambient = Color3.fromRGB(10, 10, 20), ClockTime = 0, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(5, 5, 15)}}})
+ShadersSection:AddShaderPreset({Name = "Pink", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(255, 150, 200), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 150, 200)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.3, Saturation = 0.5, TintColor = Color3.fromRGB(255, 150, 200)}}}})
+ShadersSection:AddShaderPreset({Name = "Red", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(255, 50, 50), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 80, 80)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(255, 50, 50)}}}})
+ShadersSection:AddShaderPreset({Name = "Green", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(50, 255, 50), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(80, 200, 80)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(50, 255, 50)}}}})
+ShadersSection:AddShaderPreset({Name = "Blue", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(50, 100, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(80, 130, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(50, 100, 255)}}}})
+ShadersSection:AddShaderPreset({Name = "Yellow", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(255, 200, 50), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 220, 100)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.3, Saturation = 0.6, TintColor = Color3.fromRGB(255, 200, 50)}}}})
+ShadersSection:AddShaderPreset({Name = "Purple", ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(150, 50, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(180, 100, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(150, 50, 255)}}}})
+ShadersSection:AddShaderPreset({Name = "White", ShaderData = {Lighting = {Brightness = 2, Ambient = Color3.fromRGB(255, 255, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 255, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.5, Contrast = 0, Saturation = 0, TintColor = Color3.fromRGB(255, 255, 255)}}}})
+ShadersSection:AddShaderPreset({Name = "Black", ShaderData = {Lighting = {Brightness = 0, Ambient = Color3.fromRGB(0, 0, 0), ClockTime = 0, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(0, 0, 0)}, Effects = {ColorCorrectionEffect = {Brightness = -1, Contrast = 0, Saturation = 0, TintColor = Color3.fromRGB(0, 0, 0)}}}})
+ShadersSection:AddShaderPreset({Name = "Gray", ShaderData = {Lighting = {Brightness = 0.5, Ambient = Color3.fromRGB(128, 128, 128), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(128, 128, 128)}, Effects = {ColorCorrectionEffect = {Brightness = 0, Contrast = 0, Saturation = -1, TintColor = Color3.fromRGB(128, 128, 128)}}}})
+ShadersSection:AddShaderPreset({Name = "Rain", ShaderData = {Lighting = {Brightness = 0.5, Ambient = Color3.fromRGB(100, 100, 120), ClockTime = 12, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(80, 80, 100)}, Effects = {ColorCorrectionEffect = {Brightness = -0.1, Contrast = 0.2, Saturation = -0.3, TintColor = Color3.fromRGB(180, 180, 200)}}}})
+ShadersSection:AddShaderPreset({Name = "Snow", ShaderData = {Lighting = {Brightness = 1.2, Ambient = Color3.fromRGB(220, 230, 255), ClockTime = 10, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 220, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.3, Saturation = -0.2, TintColor = Color3.fromRGB(200, 220, 255)}}}})
+ShadersSection:AddShaderPreset({Name = "Fog", ShaderData = {Lighting = {Brightness = 0.6, Ambient = Color3.fromRGB(180, 180, 190), ClockTime = 8, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(160, 160, 170), FogEnd = 100, FogStart = 0, FogColor = Color3.fromRGB(180, 180, 190)}}})
+ShadersSection:AddShaderPreset({Name = "Sunny", ShaderData = {Lighting = {Brightness = 1.5, Ambient = Color3.fromRGB(255, 240, 200), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 240, 200)}}})
+ShadersSection:AddShaderPreset({Name = "Cloudy", ShaderData = {Lighting = {Brightness = 0.6, Ambient = Color3.fromRGB(180, 180, 200), ClockTime = 12, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(160, 160, 180)}}})
+ShadersSection:AddShaderPreset({Name = "Storm", ShaderData = {Lighting = {Brightness = 0.3, Ambient = Color3.fromRGB(60, 60, 80), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(40, 40, 60)}, Effects = {ColorCorrectionEffect = {Brightness = -0.3, Contrast = 0.5, Saturation = -0.2, TintColor = Color3.fromRGB(80, 80, 100)}}}})
 
-local ColorSection = ShadersTab:AddSection({Name = "COLOR", Position = "right", Icon = GetIcon("droplet")})
-ColorSection:AddShaderPreset({Name = "Pink", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(255, 107, 157), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 150, 200)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.3, Saturation = 0.5, TintColor = Color3.fromRGB(255, 107, 157)}}}})
-ColorSection:AddShaderPreset({Name = "Red", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(255, 50, 50), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 80, 80)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(255, 50, 50)}}}})
-ColorSection:AddShaderPreset({Name = "Green", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(50, 255, 50), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(80, 200, 80)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(50, 255, 50)}}}})
-ColorSection:AddShaderPreset({Name = "Blue", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(50, 100, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(80, 130, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(50, 100, 255)}}}})
-ColorSection:AddShaderPreset({Name = "Yellow", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(255, 200, 50), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 220, 100)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.3, Saturation = 0.6, TintColor = Color3.fromRGB(255, 200, 50)}}}})
-ColorSection:AddShaderPreset({Name = "Purple", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(150, 50, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(180, 100, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.5, Saturation = 0.8, TintColor = Color3.fromRGB(150, 50, 255)}}}})
-ColorSection:AddShaderPreset({Name = "White", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 2, Ambient = Color3.fromRGB(255, 255, 255), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 255, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.5, Contrast = 0, Saturation = 0, TintColor = Color3.fromRGB(255, 255, 255)}}}})
-ColorSection:AddShaderPreset({Name = "Black", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 0, Ambient = Color3.fromRGB(0, 0, 0), ClockTime = 0, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(0, 0, 0)}, Effects = {ColorCorrectionEffect = {Brightness = -1, Contrast = 0, Saturation = 0, TintColor = Color3.fromRGB(0, 0, 0)}}}})
-ColorSection:AddShaderPreset({Name = "Gray", Icon = GetIcon("droplet"), ShaderData = {Lighting = {Brightness = 0.5, Ambient = Color3.fromRGB(128, 128, 128), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(128, 128, 128)}, Effects = {ColorCorrectionEffect = {Brightness = 0, Contrast = 0, Saturation = -1, TintColor = Color3.fromRGB(128, 128, 128)}}}})
+-- ===== AURAS TAB =====
+local AuraTab = CreateTab("Auras")
 
-local WeatherSection = ShadersTab:AddSection({Name = "WEATHER", Position = "left", Icon = GetIcon("cloud")})
-WeatherSection:AddShaderPreset({Name = "Rain", Icon = GetIcon("cloud"), ShaderData = {Lighting = {Brightness = 0.5, Ambient = Color3.fromRGB(100, 100, 120), ClockTime = 12, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(80, 80, 100)}, Effects = {ColorCorrectionEffect = {Brightness = -0.1, Contrast = 0.2, Saturation = -0.3, TintColor = Color3.fromRGB(180, 180, 200)}}}})
-WeatherSection:AddShaderPreset({Name = "Snow", Icon = GetIcon("cloud"), ShaderData = {Lighting = {Brightness = 1.2, Ambient = Color3.fromRGB(220, 230, 255), ClockTime = 10, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(200, 220, 255)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.3, Saturation = -0.2, TintColor = Color3.fromRGB(200, 220, 255)}}}})
-WeatherSection:AddShaderPreset({Name = "Fog", Icon = GetIcon("cloud"), ShaderData = {Lighting = {Brightness = 0.6, Ambient = Color3.fromRGB(180, 180, 190), ClockTime = 8, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(160, 160, 170), FogEnd = 100, FogStart = 0, FogColor = Color3.fromRGB(180, 180, 190)}}})
-WeatherSection:AddShaderPreset({Name = "Sunny", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 1.5, Ambient = Color3.fromRGB(255, 240, 200), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 240, 200)}}})
-WeatherSection:AddShaderPreset({Name = "Cloudy", Icon = GetIcon("cloud"), ShaderData = {Lighting = {Brightness = 0.6, Ambient = Color3.fromRGB(180, 180, 200), ClockTime = 12, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(160, 160, 180)}}})
-WeatherSection:AddShaderPreset({Name = "Storm", Icon = GetIcon("cloud"), ShaderData = {Lighting = {Brightness = 0.3, Ambient = Color3.fromRGB(60, 60, 80), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(40, 40, 60)}, Effects = {ColorCorrectionEffect = {Brightness = -0.3, Contrast = 0.5, Saturation = -0.2, TintColor = Color3.fromRGB(80, 80, 100)}}}})
+local MagicAuraSection = AuraTab:AddSection({Name = "BALL AURA"})
+MagicAuraSection:AddToggle({Name = "Magic Aura", Default = false, Callback = function(v) Config.MagicAura = v end, Flag = "MagicAura"})
+MagicAuraSection:AddSlider({Name = "Aura Count", Default = 3, Min = 1, Max = 6, Type = "", Callback = function(v) Config.MagicAuraCount = v end, Flag = "MagicAuraCount"})
+MagicAuraSection:AddSlider({Name = "Aura Radius", Default = 3, Min = 1, Max = 8, Type = "", Callback = function(v) Config.MagicAuraRadius = v end, Flag = "MagicAuraRadius"})
+MagicAuraSection:AddSlider({Name = "Orbit Speed", Default = 2, Min = 0.5, Max = 6, Type = "", Callback = function(v) Config.MagicAuraSpeed = v end, Flag = "MagicAuraSpeed"})
 
-local SeasonSection = ShadersTab:AddSection({Name = "SEASON", Position = "right", Icon = GetIcon("sparkles")})
-SeasonSection:AddShaderPreset({Name = "Spring", Icon = GetIcon("sparkles"), ShaderData = {Lighting = {Brightness = 1, Ambient = Color3.fromRGB(200, 255, 200), ClockTime = 12, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(180, 240, 180)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.2, Saturation = 0.3, TintColor = Color3.fromRGB(200, 255, 200)}}}})
-SeasonSection:AddShaderPreset({Name = "Summer", Icon = GetIcon("sun"), ShaderData = {Lighting = {Brightness = 1.4, Ambient = Color3.fromRGB(255, 240, 180), ClockTime = 14, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(255, 240, 180)}, Effects = {ColorCorrectionEffect = {Brightness = 0.2, Contrast = 0.4, Saturation = 0.4, TintColor = Color3.fromRGB(255, 240, 180)}}}})
-SeasonSection:AddShaderPreset({Name = "Autumn", Icon = GetIcon("sparkles"), ShaderData = {Lighting = {Brightness = 0.8, Ambient = Color3.fromRGB(255, 180, 100), ClockTime = 16, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(230, 160, 80)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.3, Saturation = 0.4, TintColor = Color3.fromRGB(255, 180, 100)}}}})
-SeasonSection:AddShaderPreset({Name = "Winter", Icon = GetIcon("snow"), ShaderData = {Lighting = {Brightness = 0.8, Ambient = Color3.fromRGB(200, 220, 255), ClockTime = 10, GeographicLatitude = 45, OutdoorAmbient = Color3.fromRGB(180, 200, 240)}, Effects = {ColorCorrectionEffect = {Brightness = 0.1, Contrast = 0.2, Saturation = -0.2, TintColor = Color3.fromRGB(200, 220, 255)}}}})
+local DJAuraSection = AuraTab:AddSection({Name = "DJ AURA"})
+DJAuraSection:AddToggle({Name = "DJ Aura", Default = false, Callback = function(v) Config.WingsAura = v end, Flag = "WingsAura"})
+DJAuraSection:AddSlider({Name = "Wings Count", Default = 10, Min = 2, Max = 20, Type = "", Callback = function(v) Config.WingsCount = v end, Flag = "WingsCount"})
+DJAuraSection:AddSlider({Name = "Wings Size", Default = 3, Min = 0.5, Max = 8, Type = "", Callback = function(v) Config.WingsSize = v end, Flag = "WingsSize"})
+DJAuraSection:AddSlider({Name = "Offset X", Default = 0, Min = -5, Max = 5, Type = "", Callback = function(v) Config.WingsOffsetX = v end, Flag = "WingsOffsetX"})
+DJAuraSection:AddSlider({Name = "Offset Y", Default = 0, Min = -5, Max = 5, Type = "", Callback = function(v) Config.WingsOffsetY = v end, Flag = "WingsOffsetY"})
+DJAuraSection:AddSlider({Name = "Offset Z", Default = 0, Min = -5, Max = 5, Type = "", Callback = function(v) Config.WingsOffsetZ = v end, Flag = "WingsOffsetZ"})
 
-local AuraTab = CreateTab(GetIcon("sparkles"), "Aura's")
+-- ===== WORLD TAB =====
+local WorldTab = CreateTab("World")
 
-local MagicAuraSection = AuraTab:AddSection({Name = "BALL AURA", Position = "left", Icon = GetIcon("sparkles")})
-MagicAuraSection:AddToggle({Name = "Magic Aura", Icon = GetIcon("sparkles"), Default = false, Callback = function(v) Config.MagicAura = v end, Flag = "MagicAura"})
-MagicAuraSection:AddSlider({Name = "Aura Count", Icon = GetIcon("hash"), Default = 3, Min = 1, Max = 6, Type = "", Callback = function(v) Config.MagicAuraCount = v end, Flag = "MagicAuraCount"})
-MagicAuraSection:AddSlider({Name = "Aura Radius", Icon = GetIcon("maximize"), Default = 3, Min = 1, Max = 8, Type = "", Callback = function(v) Config.MagicAuraRadius = v end, Flag = "MagicAuraRadius"})
-MagicAuraSection:AddSlider({Name = "Orbit Speed", Icon = GetIcon("rotate-cw"), Default = 2, Min = 0.5, Max = 6, Type = "", Callback = function(v) Config.MagicAuraSpeed = v end, Flag = "MagicAuraSpeed"})
-
-local DJAuraSection = AuraTab:AddSection({Name = "DJ AURA", Position = "right", Icon = GetIcon("wings")})
-DJAuraSection:AddToggle({Name = "DJ Aura", Icon = GetIcon("wings"), Default = false, Callback = function(v) Config.WingsAura = v end, Flag = "WingsAura"})
-DJAuraSection:AddSlider({Name = "Wings Count", Icon = GetIcon("hash"), Default = 10, Min = 2, Max = 20, Type = "", Callback = function(v) Config.WingsCount = v end, Flag = "WingsCount"})
-DJAuraSection:AddSlider({Name = "Wings Size", Icon = GetIcon("maximize"), Default = 3, Min = 0.5, Max = 8, Type = "", Callback = function(v) Config.WingsSize = v end, Flag = "WingsSize"})
-DJAuraSection:AddSlider({Name = "Offset X", Icon = GetIcon("arrow-right"), Default = 0, Min = -5, Max = 5, Type = "", Callback = function(v) Config.WingsOffsetX = v end, Flag = "WingsOffsetX"})
-DJAuraSection:AddSlider({Name = "Offset Y", Icon = GetIcon("arrow-up"), Default = 0, Min = -5, Max = 5, Type = "", Callback = function(v) Config.WingsOffsetY = v end, Flag = "WingsOffsetY"})
-DJAuraSection:AddSlider({Name = "Offset Z", Icon = GetIcon("arrow-left"), Default = 0, Min = -5, Max = 5, Type = "", Callback = function(v) Config.WingsOffsetZ = v end, Flag = "WingsOffsetZ"})
-
-local WorldEffectsTab = CreateTab(GetIcon("rain"), "World Effects")
-
-local RainSection = WorldEffectsTab:AddSection({Name = "RAIN SYSTEM", Position = "left", Icon = GetIcon("rain")})
-RainSection:AddToggle({Name = "Rain Enabled", Icon = GetIcon("rain"), Default = false, Callback = function(v)
+local RainSection = WorldTab:AddSection({Name = "RAIN SYSTEM"})
+RainSection:AddToggle({Name = "Rain Enabled", Default = false, Callback = function(v)
     Config.RainEnabled = v
     if v then
         local rainFolder = Instance.new("Folder")
@@ -1997,7 +1544,7 @@ RainSection:AddToggle({Name = "Rain Enabled", Icon = GetIcon("rain"), Default = 
                         circle.Size = Vector3.new(Config.RainCircleSize or 2, 0.1, Config.RainCircleSize or 2)
                         circle.Shape = Enum.PartType.Cylinder
                         circle.Material = Enum.Material.Neon
-                        circle.Color = Config.RainColor or Color3.fromRGB(255, 107, 157)
+                        circle.Color = Config.RainColor or Color3.fromRGB(255, 150, 200)
                         circle.Transparency = Config.RainCircleTransparency or 0.3
                         circle.Anchored = true
                         circle.CanCollide = false
@@ -2026,51 +1573,19 @@ RainSection:AddToggle({Name = "Rain Enabled", Icon = GetIcon("rain"), Default = 
         end
     end
 end, Flag = "RainEnabled"})
-RainSection:AddSlider({Name = "Rain Speed", Icon = GetIcon("arrow-down"), Default = 30, Min = 10, Max = 100, Type = "", Callback = function(v) Config.RainSpeed = v end, Flag = "RainSpeed"})
-RainSection:AddSlider({Name = "Rain Density", Icon = GetIcon("hash"), Default = 50, Min = 10, Max = 200, Type = "", Callback = function(v) Config.RainDensity = v end, Flag = "RainDensity"})
-RainSection:AddSlider({Name = "Circle Size", Icon = GetIcon("maximize"), Default = 2, Min = 0.5, Max = 5, Type = "", Callback = function(v) Config.RainCircleSize = v end, Flag = "RainCircleSize"})
-RainSection:AddSlider({Name = "Circle Transparency", Icon = GetIcon("eye"), Default = 0.3, Min = 0, Max = 1, Type = "", Callback = function(v) Config.RainCircleTransparency = v end, Flag = "RainCircleTransparency"})
+RainSection:AddSlider({Name = "Rain Speed", Default = 30, Min = 10, Max = 100, Type = "", Callback = function(v) Config.RainSpeed = v end, Flag = "RainSpeed"})
+RainSection:AddSlider({Name = "Rain Density", Default = 50, Min = 10, Max = 200, Type = "", Callback = function(v) Config.RainDensity = v end, Flag = "RainDensity"})
+RainSection:AddSlider({Name = "Circle Size", Default = 2, Min = 0.5, Max = 5, Type = "", Callback = function(v) Config.RainCircleSize = v end, Flag = "RainCircleSize"})
+RainSection:AddSlider({Name = "Circle Transparency", Default = 0.3, Min = 0, Max = 1, Type = "", Callback = function(v) Config.RainCircleTransparency = v end, Flag = "RainCircleTransparency"})
 
-local InfoTab = CreateTab(GetIcon("info"), "Info")
-local InfoSection = InfoTab:AddSection({Name = "INFORMATION", Position = "left", Icon = GetIcon("info")})
-InfoSection:AddLabel({Name = "Telegram: @burmaldashell", Icon = GetIcon("message-circle")})
-InfoSection:AddLabel({Name = "Discord: popka_akulb_70132", Icon = GetIcon("message-square")})
+-- ===== INFO TAB =====
+local InfoTab = CreateTab("Info")
+local InfoSection = InfoTab:AddSection({Name = "INFORMATION"})
+InfoSection:AddLabel({Name = "Telegram: @burmaldashell"})
+InfoSection:AddLabel({Name = "Discord: popka_akulb_70132"})
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.Touch then
-        Config.IsHoldingJump = true
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.Touch then
-        Config.IsHoldingJump = false
-    end
-end)
-
-task.spawn(function()
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui", 5)
-    if not playerGui then return end
-    local touchGui = playerGui:FindFirstChild("TouchGui")
-    if touchGui then
-        local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame")
-        local jumpButton = touchControlFrame and touchControlFrame:FindFirstChild("JumpButton")
-        if jumpButton then
-            jumpButton.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    Config.IsHoldingJump = true
-                end
-            end)
-            jumpButton.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    Config.IsHoldingJump = false
-                end
-            end)
-        end
-    end
-end)
-
+-- ===== ИНИЦИАЛИЗАЦИЯ ФУНКЦИЙ =====
+-- Bunny Hop
 local bHopConnection = nil
 local function setupBHop(character)
     if not character then return end
@@ -2087,6 +1602,7 @@ local function setupBHop(character)
         end
     end)
 end
+
 if LocalPlayer.Character then
     setupBHop(LocalPlayer.Character)
 end
@@ -2094,6 +1610,20 @@ LocalPlayer.CharacterAdded:Connect(function(character)
     setupBHop(character)
 end)
 
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.Touch then
+        Config.IsHoldingJump = true
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.Touch then
+        Config.IsHoldingJump = false
+    end
+end)
+
+-- Speed
 RS.Heartbeat:Connect(function()
     if Config.SpeedEnabled and LocalPlayer.Character then
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -2106,6 +1636,7 @@ RS.Heartbeat:Connect(function()
     end
 end)
 
+-- TP Walk
 RS.Heartbeat:Connect(function()
     if Config.TpWalkEnabled and LocalPlayer.Character then
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -2125,6 +1656,7 @@ RS.Heartbeat:Connect(function()
     end
 end)
 
+-- Super Jump
 RS.Heartbeat:Connect(function()
     if Config.SuperJumpEnabled and LocalPlayer.Character then
         local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
@@ -2139,6 +1671,7 @@ RS.Heartbeat:Connect(function()
     end
 end)
 
+-- Spin Bot
 local spinAngle = 0
 local spinRandom = 0
 RS.Heartbeat:Connect(function()
@@ -2174,6 +1707,7 @@ RS.Heartbeat:Connect(function()
     root.CFrame = CFrame.new(root.Position) * CFrame.Angles(xAngle, yAngle, 0)
 end)
 
+-- CTRL + Click TP
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if Config.TpEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
@@ -2187,6 +1721,7 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
+-- Magic Aura
 local auraParts = {}
 RS.RenderStepped:Connect(function()
     if not Config.MagicAura then
@@ -2219,9 +1754,12 @@ RS.RenderStepped:Connect(function()
     local radius = Config.MagicAuraRadius or 3
     local speed = Config.MagicAuraSpeed or 2
     local colors = {
-        Color3.fromRGB(255, 107, 157), Color3.fromRGB(255, 107, 107),
-        Color3.fromRGB(255, 160, 50), Color3.fromRGB(255, 215, 0),
-        Color3.fromRGB(255, 107, 157), Color3.fromRGB(150, 80, 220),
+        Color3.fromRGB(255, 150, 200),
+        Color3.fromRGB(255, 200, 220),
+        Color3.fromRGB(255, 220, 180),
+        Color3.fromRGB(255, 200, 200),
+        Color3.fromRGB(255, 150, 200),
+        Color3.fromRGB(200, 150, 255),
     }
     for i, sphere in ipairs(auraParts) do
         local angleOffset = (i - 1) * (math.pi * 2 / count)
@@ -2235,6 +1773,7 @@ RS.RenderStepped:Connect(function()
     end
 end)
 
+-- DJ Wings Aura
 local wingParts = {}
 RS.RenderStepped:Connect(function()
     if not Config.WingsAura then
@@ -2260,7 +1799,7 @@ RS.RenderStepped:Connect(function()
         wing.Shape = Enum.PartType.Block
         wing.Size = Vector3.new(0.3, 0.05, 0.8)
         wing.Transparency = 0.2
-        wing.Color = AccentColor
+        wing.Color = Color3.fromRGB(255, 150, 200)
         wing.Parent = WS
         table.insert(wingParts, wing)
     end
@@ -2287,65 +1826,13 @@ RS.RenderStepped:Connect(function()
         wing.CFrame = CFrame.new(wing.Position, pos + Vector3.new(0, 1.5, 0))
         wing.Size = Vector3.new(0.3, 0.05, 0.8 + math.sin(angle + i) * 0.2)
         wing.Transparency = 0.2 + math.sin(angle + i) * 0.1
-        wing.Color = AccentColor
+        wing.Color = Color3.fromRGB(255, 150, 200)
     end
 end)
 
-local DragToggle = false
-local DragStart = Vector2.new()
-local StartPos = UDim2.new()
-
-local DragFrame = Instance.new("Frame")
-DragFrame.Parent = Frame
-DragFrame.Size = UDim2.new(1, 0, 0, 55)
-DragFrame.BackgroundTransparency = 1
-DragFrame.ZIndex = 10
-
-DragFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        DragToggle = true
-        DragStart = input.Position
-        StartPos = Frame.Position
-    end
-end)
-
-DragFrame.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        DragToggle = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and DragToggle then
-        local delta = input.Position - DragStart
-        Frame.Position = UDim2.new(
-            StartPos.X.Scale, StartPos.X.Offset + delta.X,
-            StartPos.Y.Scale, StartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Parent = Frame
-CloseBtn.Size = UDim2.new(0, 25, 0, 25)
-CloseBtn.Position = UDim2.new(1, -10, 0, 5)
-CloseBtn.AnchorPoint = Vector2.new(1, 0)
-CloseBtn.BackgroundTransparency = 1
-CloseBtn.Text = "x"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 16
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextTransparency = 0.5
-
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-    WatermarkGui:Destroy()
-end)
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
+-- Toggle GUI with Z key
+UIS.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.Z and not gameProcessed then
         ScreenGui.Enabled = not ScreenGui.Enabled
     end
 end)
-
--- NOT CODDING WITH AI
